@@ -1,25 +1,44 @@
 {
   "expo": {
-    "name": "shd-interior-mobile",
+    "name": "SHD Interior",
     "slug": "shd-interior-mobile",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/icon.png",
+    "icon": "./assets/shd-interior-icon.png",
     "userInterfaceStyle": "light",
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "bundleIdentifier": "com.shdinterior.mobile"
     },
     "android": {
       "adaptiveIcon": {
-        "backgroundColor": "#E6F4FE",
-        "foregroundImage": "./assets/android-icon-foreground.png",
-        "backgroundImage": "./assets/android-icon-background.png",
-        "monochromeImage": "./assets/android-icon-monochrome.png"
+        "backgroundColor": "#064A3C",
+        "foregroundImage": "./assets/shd-interior-adaptive.png"
       },
-      "predictiveBackGestureEnabled": false
+      "predictiveBackGestureEnabled": false,
+      "package": "com.shdinterior.mobile"
+    },
+    "androidNavigationBar": {
+      "backgroundColor": "#F5F7F8",
+      "barStyle": "dark-content",
+      "enforceContrast": false
     },
     "web": {
-      "favicon": "./assets/favicon.png"
-    }
+      "favicon": "./assets/shd-interior-favicon.png"
+    },
+    "splash": {
+      "image": "./assets/shd-interior-splash.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#064A3C"
+    },
+    "plugins": [
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "Allow SHD Interior to access site photos and videos for progress evidence."
+        }
+      ],
+      "expo-document-picker"
+    ]
   }
 }
