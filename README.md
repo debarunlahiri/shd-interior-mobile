@@ -9,7 +9,9 @@ A role-aware React Native application for construction and interior project oper
 - Supervisor dashboard with active site, progress, workforce, tasks and open issues
 - Assigned task list with search, status filters, details, progress and evidence entry
 - Site overview with progress updates, inventory levels and worker attendance
-- Daily site reports, material requests, expenses and issue reporting
+- Persistent daily site reports with task selection, evidence and filtered history
+- Persistent material requests with lifecycle history and receipt confirmation
+- Expenses and issue reporting
 - Admin project overview and approval queues
 - Vendor purchase-order and delivery tracking
 - Notifications, profile, cash-in-hand summary, messages and documents entry points

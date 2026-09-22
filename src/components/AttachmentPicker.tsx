@@ -9,11 +9,13 @@ export function AttachmentPicker({
   onChange,
   label = "Add photo or document",
   mediaOnly = false,
+  mediaType,
 }: {
   value: string | null;
   onChange: (value: string) => void;
   label?: string;
   mediaOnly?: boolean;
+  mediaType?: "images" | "videos";
 }) {
   const choosePhoto = async () => {
     const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
@@ -25,7 +27,7 @@ export function AttachmentPicker({
       return;
     }
     const result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ["images", "videos"],
+      mediaTypes: mediaType ? [mediaType] : ["images", "videos"],
       quality: 0.8,
     });
     if (!result.canceled)
@@ -64,7 +66,11 @@ export function AttachmentPicker({
           {value
             ? "Tap to replace attachment"
             : mediaOnly
-              ? "JPG, PNG or MP4"
+              ? mediaType === "images"
+                ? "JPG or PNG"
+                : mediaType === "videos"
+                  ? "MP4 or compatible video"
+                  : "JPG, PNG or MP4"
               : "JPG, PNG, MP4 or PDF"}
         </Text>
       </View>

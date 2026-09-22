@@ -3,17 +3,19 @@ import { StyleSheet, View } from "react-native";
 import { ActionSheet, TaskSheet } from "../components/AppSheets";
 import { BottomTabs } from "../components/BottomTabs";
 import { Task } from "../data";
+import { defaultTabForRole, roleTabs } from "../config/roles";
+import { useDailyReports } from "../hooks/useDailyReports";
+import { useMaterialRequests } from "../hooks/useMaterialRequests";
+import { useSiteProgress } from "../hooks/useSiteProgress";
+import { useTasks } from "../hooks/useTasks";
+import { useUserRole } from "../hooks/useUserRole";
 import { HomeScreen } from "../screens/HomeScreen";
 import { MoreScreen } from "../screens/MoreScreen";
+import { RoleDashboardScreen } from "../screens/RoleDashboardScreen";
+import { RoleModuleScreen } from "../screens/RoleModuleScreen";
 import { SiteScreen } from "../screens/SiteScreen";
 import { TasksScreen } from "../screens/TasksScreen";
 import { SheetName, TabName } from "../types/navigation";
-import { useTasks } from "../hooks/useTasks";
-import { useSiteProgress } from "../hooks/useSiteProgress";
-import { useUserRole } from "../hooks/useUserRole";
-import { defaultTabForRole, roleTabs } from "../config/roles";
-import { RoleDashboardScreen } from "../screens/RoleDashboardScreen";
-import { RoleModuleScreen } from "../screens/RoleModuleScreen";
 
 export function AppNavigator() {
   const [tab, setTab] = useState<TabName>("Home");
@@ -21,6 +23,12 @@ export function AppNavigator() {
   const [selectedTask, setSelectedTask] = useState<Task | null>(null);
   const { tasks, updateTask } = useTasks();
   const { entries: progressEntries, addProgress } = useSiteProgress();
+  const { reports: dailyReports, addReport } = useDailyReports();
+  const {
+    requests: materialRequests,
+    addRequest: addMaterialRequest,
+    confirmReceived: confirmMaterialReceived,
+  } = useMaterialRequests();
   const { role, setRole } = useUserRole();
 
   useEffect(() => {
@@ -72,6 +80,12 @@ export function AppNavigator() {
         onClose={() => setSheet(null)}
         progressEntries={progressEntries}
         onAddProgress={addProgress}
+        tasks={tasks}
+        dailyReports={dailyReports}
+        onAddDailyReport={addReport}
+        materialRequests={materialRequests}
+        onAddMaterialRequest={addMaterialRequest}
+        onConfirmMaterialReceived={confirmMaterialReceived}
       />
       <TaskSheet
         task={currentTask}

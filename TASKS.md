@@ -1,6 +1,6 @@
 # SHD Interior Application Task Tracker
 
-Last updated: 20 September 2026
+Last updated: 22 September 2026
 
 ## Status definitions
 
@@ -19,7 +19,7 @@ Last updated: 20 September 2026
 | Supervisor dashboard               | Completed   | Local dashboard and assigned-site summary                                |
 | Supervisor task workflow           | In progress | Persistent local workflow complete; Admin verification pending           |
 | Site progress updates              | Completed   | Persistent staged updates, media, remarks, percentage, and history table |
-| Daily progress reports             | In progress | Basic form exists; full fields and report history pending                |
+| Daily progress reports             | Completed   | Full local report form, evidence, persistence, and filtered history      |
 | Materials and site inventory       | In progress | Request form and stock overview exist; transactions pending              |
 | Attendance                         | In progress | Roster and basic form exist; time and historical records pending         |
 | Expenses and cash                  | In progress | Submission form and sample ledger exist; live calculation pending        |
@@ -136,23 +136,25 @@ Last updated: 20 September 2026
 
 ### Daily progress report
 
-- [ ] Add automatic date, project, site, and supervisor details.
-- [ ] Add work completed and workforce fields. Existing basic fields require validation.
-- [ ] Add tasks completed and tasks pending selection.
-- [ ] Add separate materials used and materials required sections.
-- [ ] Add site-expense summary and issue selection.
-- [ ] Add photo and video evidence. Generic attachment selection currently exists.
-- [ ] Add historical daily-report list with site and date filters.
-- [ ] Persist submitted reports and expose them to the Admin Panel.
+- [x] Add automatic date, project, site, and supervisor details.
+- [x] Add validated work completed and workforce fields.
+- [x] Add tasks completed and tasks pending selection.
+- [x] Add separate materials used and materials required sections.
+- [x] Add site-expense summary and issues faced fields.
+- [x] Add separate photo and video evidence selection.
+- [x] Add historical daily-report list with site and date filters.
+- [x] Persist submitted reports locally on the device.
+- [ ] Synchronize submitted reports with the Admin Panel.
 
 ### Material requirements
 
-- [ ] Split requested quantity and unit into dedicated fields.
-- [ ] Add request remarks.
-- [ ] Add material-request list and detail screens.
-- [ ] Display Submitted, Approved, Rejected, Partially Approved, Allocated, Purchased, Dispatched, and Received states.
-- [ ] Add complete request-status history.
-- [ ] Add Supervisor confirmation when dispatched material is received.
+- [x] Split requested quantity and unit into dedicated fields.
+- [x] Add request remarks.
+- [x] Add material-request list and detail screens.
+- [x] Display Submitted, Approved, Rejected, Partially Approved, Allocated, Purchased, Dispatched, and Received states.
+- [x] Add complete request-status history.
+- [x] Add Supervisor confirmation when dispatched material is received.
+- [ ] Synchronize material requests and Admin approval actions with the backend.
 
 ### Site inventory and consumption
 
