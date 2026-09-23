@@ -63,7 +63,7 @@ const en = {
   "workspace.expenses": "Expenses",
   "workspace.expensesCopy": "Site expenses and approvals",
   "workspace.cash": "Cash in hand",
-  "workspace.cashCopy": "Available balance ₹37,000",
+  "workspace.cashCopy": "Calculated site cash balance",
   "workspace.attendance": "Attendance",
   "workspace.attendanceCopy": "Workers and site visits",
   "workspace.issues": "Issues & support",

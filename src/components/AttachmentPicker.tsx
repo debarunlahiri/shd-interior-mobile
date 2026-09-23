@@ -12,12 +12,21 @@ export function AttachmentPicker({
   label,
   mediaOnly = false,
   mediaType,
+  compact = false,
+  onAssetChange,
 }: {
   value: string | null;
   onChange: (value: string) => void;
   label?: string;
   mediaOnly?: boolean;
   mediaType?: "images" | "videos";
+  compact?: boolean;
+  onAssetChange?: (asset: {
+    name: string;
+    uri: string;
+    mimeType?: string;
+    size?: number;
+  }) => void;
 }) {
   const { t } = useTranslation();
   const displayLabel = label ?? t("attachment.add");
@@ -35,15 +44,33 @@ export function AttachmentPicker({
       mediaTypes: mediaType ? [mediaType] : ["images", "videos"],
       quality: 0.8,
     });
-    if (!result.canceled)
-      onChange(result.assets[0].fileName ?? t("attachment.siteMedia"));
+    if (!result.canceled) {
+      const asset = result.assets[0];
+      const name = asset.fileName ?? t("attachment.siteMedia");
+      onChange(name);
+      onAssetChange?.({
+        name,
+        uri: asset.uri,
+        mimeType: asset.mimeType,
+        size: asset.fileSize,
+      });
+    }
   };
   const chooseDocument = async () => {
     const result = await DocumentPicker.getDocumentAsync({
-      type: ["application/pdf", "image/*"],
+      type: "*/*",
       copyToCacheDirectory: true,
     });
-    if (!result.canceled) onChange(result.assets[0].name);
+    if (!result.canceled) {
+      const asset = result.assets[0];
+      onChange(asset.name);
+      onAssetChange?.({
+        name: asset.name,
+        uri: asset.uri,
+        mimeType: asset.mimeType,
+        size: asset.size,
+      });
+    }
   };
   const open = () => {
     if (mediaOnly) {
@@ -57,33 +84,42 @@ export function AttachmentPicker({
     ]);
   };
   return (
-    <Pressable style={styles.box} onPress={open}>
+    <Pressable
+      accessibilityRole="button"
+      accessibilityLabel={displayLabel}
+      style={compact ? styles.compactBox : styles.box}
+      onPress={open}
+    >
       <FontAwesome6
-        name={value ? "circle-check" : "cloud-arrow-up"}
-        size={22}
+        name={compact ? "paperclip" : value ? "circle-check" : "cloud-arrow-up"}
+        size={compact ? 16 : 22}
         color={value ? colors.success : colors.primary}
       />
-      <View style={styles.info}>
-        <Text style={styles.title} numberOfLines={1}>
-          {value ?? displayLabel}
-        </Text>
-        <Text style={styles.copy}>
-          {value
-            ? t("attachment.replace")
-            : mediaOnly
-              ? mediaType === "images"
-                ? t("attachment.images")
-                : mediaType === "videos"
-                  ? t("attachment.videos")
-                  : t("attachment.media")
-              : t("attachment.all")}
-        </Text>
-      </View>
-      <FontAwesome6
-        name={value ? "arrow-right-arrow-left" : "circle-plus"}
-        size={19}
-        color={colors.primary}
-      />
+      {compact ? null : (
+        <View style={styles.info}>
+          <Text style={styles.title} numberOfLines={1}>
+            {value ?? displayLabel}
+          </Text>
+          <Text style={styles.copy}>
+            {value
+              ? t("attachment.replace")
+              : mediaOnly
+                ? mediaType === "images"
+                  ? t("attachment.images")
+                  : mediaType === "videos"
+                    ? t("attachment.videos")
+                    : t("attachment.media")
+                : t("attachment.all")}
+          </Text>
+        </View>
+      )}
+      {compact ? null : (
+        <FontAwesome6
+          name={value ? "arrow-right-arrow-left" : "circle-plus"}
+          size={19}
+          color={colors.primary}
+        />
+      )}
     </Pressable>
   );
 }
@@ -99,6 +135,14 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     gap: 12,
+  },
+  compactBox: {
+    width: 42,
+    height: 42,
+    borderRadius: 12,
+    backgroundColor: colors.primarySoft,
+    alignItems: "center",
+    justifyContent: "center",
   },
   info: { flex: 1 },
   title: { color: colors.ink, fontSize: 12, fontWeight: "700" },

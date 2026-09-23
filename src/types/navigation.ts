@@ -23,4 +23,5 @@ export type SheetName =
   | "cash"
   | "messages"
   | "documents"
+  | "activity"
   | null;

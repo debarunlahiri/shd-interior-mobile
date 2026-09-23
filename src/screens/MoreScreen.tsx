@@ -13,11 +13,15 @@ export function MoreScreen({
   onTab,
   role,
   onSignOut,
+  unreadMessageCount,
+  accountName,
 }: {
   onSheet: (sheet: SheetName) => void;
   onTab: (tab: TabName) => void;
   role: UserRole;
   onSignOut: () => Promise<void>;
+  unreadMessageCount: number;
+  accountName: string;
 }) {
   const { t } = useTranslation();
   const dialog = useAppDialog();
@@ -27,6 +31,12 @@ export function MoreScreen({
     icon: FontAwesomeIcon;
     action: () => void;
   }[] = [
+    {
+      label: "Activity and site visits",
+      copy: "Timeline, visitors, and site visit history",
+      icon: "clock-rotate-left",
+      action: () => onSheet("activity"),
+    },
     {
       label: t("workspace.dailyReports"),
       copy: t("workspace.dailyReportsCopy"),
@@ -59,7 +69,9 @@ export function MoreScreen({
     },
     {
       label: t("workspace.messages"),
-      copy: t("workspace.supervisorMessagesCopy"),
+      copy: unreadMessageCount
+        ? `${unreadMessageCount} unread conversation updates`
+        : "Project and site conversations",
       icon: "comments",
       action: () => onSheet("messages"),
     },
@@ -79,7 +91,9 @@ export function MoreScreen({
     },
     {
       label: t("workspace.messages"),
-      copy: t("workspace.adminMessagesCopy"),
+      copy: unreadMessageCount
+        ? `${unreadMessageCount} unread conversation updates`
+        : "Project and site conversations",
       icon: "comments",
       action: () => onSheet("messages"),
     },
@@ -93,7 +107,9 @@ export function MoreScreen({
   const vendorMenu: typeof supervisorMenu = [
     {
       label: t("workspace.messages"),
-      copy: t("workspace.vendorMessagesCopy"),
+      copy: unreadMessageCount
+        ? `${unreadMessageCount} unread conversation updates`
+        : "Project and site conversations",
       icon: "comments",
       action: () => onSheet("messages"),
     },
@@ -114,18 +130,18 @@ export function MoreScreen({
     role === "Admin"
       ? {
           initials: "DL",
-          name: "Debarun Lahiri",
+          name: accountName,
           copy: "Company Admin · SHD Interior",
         }
       : role === "Vendor"
         ? {
             initials: "BM",
-            name: "BuildMart Supplies",
+            name: accountName,
             copy: "Approved Vendor · SHD Interior",
           }
         : {
             initials: "AK",
-            name: "Arjun Kumar",
+            name: accountName,
             copy: "Site Supervisor · SHD Interior",
           };
   return (

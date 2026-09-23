@@ -1,31 +1,32 @@
 import { useState } from "react";
 import { SiteProgressEntry, Task } from "../data";
+import { AttendanceEntry, AttendanceEntryInput } from "../hooks/useAttendance";
 import { ManagedMaterial, ManagedUnit } from "../hooks/useAdminMasters";
 import { DailyReport, DailyReportInput } from "../hooks/useDailyReports";
+import { FinanceRecord, FinanceRecordInput } from "../hooks/useFinance";
+import { SiteIssue, SiteIssueInput } from "../hooks/useIssues";
+import { AppNotification, Conversation } from "../hooks/useCommunications";
+import { DocumentUploadInput, SiteDocument } from "../hooks/useDocuments";
+import { SiteVisit, SiteVisitInput } from "../hooks/useSiteVisits";
 import {
   MaterialRequest,
   MaterialRequestInput,
 } from "../hooks/useMaterialRequests";
 import { SiteProgressInput } from "../hooks/useSiteProgress";
-import {
-  OperationalRecord,
-  OperationalRecordInput,
-} from "../hooks/useOperationalRecords";
 import { SheetName } from "../types/navigation";
+import { UserRole } from "../types/roles";
 import { DailyReportSheet } from "./sheets/DailyReportSheet";
+import { AttendanceSheet } from "./sheets/AttendanceSheet";
+import { CashSheet } from "./sheets/CashSheet";
 import { MaterialRequestSheet } from "./sheets/MaterialRequestSheet";
+import { ExpenseSheet } from "./sheets/ExpenseSheet";
+import { IssueSheet } from "./sheets/IssueSheet";
+import { MessagesSheet, NotificationSheet } from "./sheets/CommunicationSheets";
+import { DocumentsSheet } from "./sheets/DocumentsSheet";
+import { ActivitySheet } from "./sheets/ActivitySheet";
 import { SiteProgress } from "./sheets/SiteProgressSheet";
 import { SheetLayout } from "./sheets/SheetLayout";
-import {
-  Cash,
-  Documents,
-  getSheetConfig,
-  Messages,
-  Notifications,
-  Profile,
-  SimpleForm,
-  Success,
-} from "./sheets/SupportSheets";
+import { getSheetConfig, Profile, Success } from "./sheets/SupportSheets";
 
 export { TaskSheet } from "./sheets/TaskSheet";
 
@@ -42,8 +43,28 @@ export function ActionSheet({
   onConfirmMaterialReceived,
   managedMaterials,
   managedUnits,
-  operationalRecords,
-  onAddOperationalRecord,
+  attendanceEntries,
+  onSaveAttendance,
+  financeRecords,
+  cashBalance,
+  onAddFinanceRecord,
+  issues,
+  onAddIssue,
+  role,
+  conversations,
+  notifications,
+  onSendMessage,
+  onReadConversation,
+  onReadNotification,
+  onReadAllNotifications,
+  documents,
+  onUploadDocument,
+  accountName,
+  accountPhone,
+  assignedProjectName,
+  assignedSiteName,
+  siteVisits,
+  onAddSiteVisit,
 }: {
   kind: SheetName;
   onClose: () => void;
@@ -57,8 +78,34 @@ export function ActionSheet({
   onConfirmMaterialReceived: (requestId: string) => void;
   managedMaterials: ManagedMaterial[];
   managedUnits: ManagedUnit[];
-  operationalRecords: OperationalRecord[];
-  onAddOperationalRecord: (input: OperationalRecordInput) => void;
+  attendanceEntries: AttendanceEntry[];
+  onSaveAttendance: (input: AttendanceEntryInput[]) => void;
+  financeRecords: FinanceRecord[];
+  cashBalance: number;
+  onAddFinanceRecord: (input: FinanceRecordInput) => void;
+  issues: SiteIssue[];
+  onAddIssue: (input: SiteIssueInput) => void;
+  role: UserRole;
+  conversations: Conversation[];
+  notifications: AppNotification[];
+  onSendMessage: (
+    conversationId: string,
+    role: UserRole,
+    senderName: string,
+    text: string,
+    attachmentName?: string,
+  ) => void;
+  onReadConversation: (conversationId: string, role: UserRole) => void;
+  onReadNotification: (id: string, role: UserRole) => void;
+  onReadAllNotifications: (role: UserRole) => void;
+  documents: SiteDocument[];
+  onUploadDocument: (input: DocumentUploadInput) => void;
+  accountName: string;
+  accountPhone: string;
+  assignedProjectName?: string;
+  assignedSiteName?: string;
+  siteVisits: SiteVisit[];
+  onAddSiteVisit: (input: SiteVisitInput) => void;
 }) {
   const [submitted, setSubmitted] = useState(false);
   const config = getSheetConfig(kind);
@@ -77,15 +124,47 @@ export function ActionSheet({
       {submitted ? (
         <Success onClose={close} />
       ) : kind === "notifications" ? (
-        <Notifications />
+        <NotificationSheet
+          notifications={notifications}
+          role={role}
+          onRead={onReadNotification}
+          onReadAll={onReadAllNotifications}
+        />
       ) : kind === "profile" ? (
-        <Profile />
+        <Profile
+          name={accountName}
+          role={role}
+          phone={accountPhone}
+          projectName={assignedProjectName}
+          siteName={assignedSiteName}
+        />
       ) : kind === "cash" ? (
-        <Cash />
+        <CashSheet
+          records={financeRecords}
+          balance={cashBalance}
+          onSubmit={onAddFinanceRecord}
+        />
       ) : kind === "messages" ? (
-        <Messages />
+        <MessagesSheet
+          conversations={conversations}
+          role={role}
+          onSend={onSendMessage}
+          onRead={onReadConversation}
+        />
       ) : kind === "documents" ? (
-        <Documents />
+        <DocumentsSheet documents={documents} onUpload={onUploadDocument} />
+      ) : kind === "activity" ? (
+        <ActivitySheet
+          tasks={tasks}
+          reports={dailyReports}
+          requests={materialRequests}
+          financeRecords={financeRecords}
+          attendanceEntries={attendanceEntries}
+          issues={issues}
+          conversations={conversations}
+          visits={siteVisits}
+          onAddVisit={onAddSiteVisit}
+        />
       ) : kind === "progress" ? (
         <SiteProgress
           entries={progressEntries}
@@ -108,12 +187,20 @@ export function ActionSheet({
           materials={managedMaterials}
           units={managedUnits}
         />
-      ) : kind === "expense" || kind === "attendance" || kind === "issue" ? (
-        <SimpleForm
-          kind={kind}
-          records={operationalRecords}
-          onSubmit={onAddOperationalRecord}
+      ) : kind === "attendance" ? (
+        <AttendanceSheet
+          entries={attendanceEntries}
+          onSave={onSaveAttendance}
         />
+      ) : kind === "expense" ? (
+        <ExpenseSheet
+          records={financeRecords}
+          materials={managedMaterials}
+          units={managedUnits}
+          onSubmit={onAddFinanceRecord}
+        />
+      ) : kind === "issue" ? (
+        <IssueSheet issues={issues} onSubmit={onAddIssue} />
       ) : null}
     </SheetLayout>
   );

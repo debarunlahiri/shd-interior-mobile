@@ -12,23 +12,23 @@ Last updated: 23 September 2026
 
 ## Module status summary
 
-| Module                             | Status      | Current scope                                                            |
-| ---------------------------------- | ----------- | ------------------------------------------------------------------------ |
-| Application foundation             | Completed   | Modular Expo/React Native application, branding, icons, permissions      |
-| Role-aware application shell       | Completed   | Phone-mapped Admin, Supervisor, and Vendor UI/navigation                 |
-| Supervisor dashboard               | Completed   | Local dashboard and assigned-site summary                                |
-| Supervisor task workflow           | Completed   | Persistent local workflow with Admin review and verification             |
-| Site progress updates              | Completed   | Persistent staged updates, media, remarks, percentage, and history table |
-| Daily progress reports             | Completed   | Full local report form, evidence, persistence, and filtered history      |
-| Materials and site inventory       | Completed   | Persistent requests, stock movements, balances, and transaction history  |
-| Attendance                         | In progress | Roster and basic form exist; time and historical records pending         |
-| Expenses and cash                  | In progress | Submission form and sample ledger exist; live calculation pending        |
-| Issues and support                 | In progress | Basic reporting form exists; lifecycle and history pending               |
-| Messages and notifications         | In progress | Local UI exists; persistence and event delivery pending                  |
-| Company Admin mobile interface     | In progress | Dashboard, project overview, approvals, and role menu use local data     |
-| Vendor mobile interface            | In progress | Dashboard, purchase orders, deliveries, and role menu use local data     |
-| Client mobile interface            | Pending     | Planned later as a read-only role                                        |
-| Backend and production integration | Pending     | No API, authentication, sync, or server persistence                      |
+| Module                             | Status      | Current scope                                                             |
+| ---------------------------------- | ----------- | ------------------------------------------------------------------------- |
+| Application foundation             | Completed   | Modular Expo/React Native application, branding, icons, permissions       |
+| Role-aware application shell       | Completed   | Phone-mapped Admin, Supervisor, and Vendor UI/navigation                  |
+| Supervisor dashboard               | Completed   | Local dashboard and assigned-site summary                                 |
+| Supervisor task workflow           | Completed   | Persistent local workflow with Admin review and verification              |
+| Site progress updates              | Completed   | Persistent staged updates, media, remarks, percentage, and history table  |
+| Daily progress reports             | Completed   | Full local report form, evidence, persistence, and filtered history       |
+| Materials and site inventory       | Completed   | Persistent requests, stock movements, balances, and transaction history   |
+| Attendance                         | Completed   | Persistent daily roster, work hours, overtime, history, and Admin view    |
+| Expenses and cash                  | Completed   | Persistent approvals, purchases, returns, and calculated cash balance     |
+| Issues and support                 | Completed   | Persistent issue/support lifecycle, evidence, history, and resolution     |
+| Messages and notifications         | Completed   | Persistent categorized conversations, attachments, alerts, and read state |
+| Company Admin mobile interface     | In progress | Dashboard, project overview, approvals, and role menu use local data      |
+| Vendor mobile interface            | In progress | Dashboard, purchase orders, deliveries, and role menu use local data      |
+| Client mobile interface            | Pending     | Planned later as a read-only role                                         |
+| Backend and production integration | Pending     | No API, authentication, sync, or server persistence                       |
 
 ## Completed
 
@@ -175,53 +175,53 @@ Last updated: 23 September 2026
 
 ### Attendance
 
-- [ ] Add attendance date, in time, out time, overtime, and remarks.
-- [ ] Add Leave status.
-- [ ] Support marking multiple workers efficiently.
-- [ ] Add daily and historical attendance views.
-- [ ] Persist attendance submissions and make them visible to Admin.
+- [x] Add attendance date, in time, out time, overtime, and remarks.
+- [x] Add Leave status.
+- [x] Support marking multiple workers efficiently.
+- [x] Add daily and historical attendance views.
+- [x] Persist attendance submissions and make them visible to Admin.
 
 ### Site expenses and local purchases
 
-- [ ] Add expense date, payment method, and remarks fields.
-- [ ] Add selectable expense categories.
-- [ ] Add bill and receipt preview after selection.
-- [ ] Add expense history and Pending, Approved, and Rejected states.
-- [ ] Create a dedicated Local Purchase form with shop, material, quantity, amount, payment method, and receipt fields.
-- [ ] Connect approved expenses and local purchases to the cash-in-hand calculation.
+- [x] Add expense date, payment method, and remarks fields.
+- [x] Add selectable expense categories.
+- [x] Add bill and receipt preview after selection.
+- [x] Add expense history and Pending, Approved, and Rejected states.
+- [x] Create a dedicated Local Purchase form with shop, material, quantity, amount, payment method, and receipt fields.
+- [x] Connect approved expenses and local purchases to the cash-in-hand calculation.
 
 ### Cash in hand
 
-- [ ] Replace sample ledger values with persisted issued cash, expenses, local purchases, returns, and balance.
-- [ ] Add transaction dates, references, and purpose.
-- [ ] Add Cash Returned workflow.
-- [ ] Prevent manual editing of the calculated balance.
+- [x] Replace sample ledger values with persisted issued cash, expenses, local purchases, returns, and balance.
+- [x] Add transaction dates, references, and purpose.
+- [x] Add Cash Returned workflow.
+- [x] Prevent manual editing of the calculated balance.
 
 ### Issues and technical support
 
 - [x] Add dropdown selection for Issue Type and Priority.
-- [ ] Add separate project, site, category, priority, reported date, remarks, and status fields.
-- [ ] Add dedicated Technical Support Request flow.
-- [ ] Add Open, Assigned, In Progress, Resolved, and Closed lifecycle states.
-- [ ] Add issue history, detail, and resolution views.
-- [ ] Attach multiple photos and videos to an issue.
+- [x] Add separate project, site, category, priority, reported date, remarks, and status fields.
+- [x] Add dedicated Technical Support Request flow.
+- [x] Add Open, Assigned, In Progress, Resolved, and Closed lifecycle states.
+- [x] Add issue history, detail, and resolution views.
+- [x] Attach multiple photos and videos to an issue.
 
 ### Messages and notifications
 
-- [ ] Add site-specific and project-specific conversation lists.
-- [ ] Add Instruction, Material Request, Issue, Technical Support, General, and Urgent categories.
-- [ ] Persist message history.
-- [ ] Add message attachment support.
-- [ ] Replace demonstration notifications with real event-driven notifications.
-- [ ] Add read and unread state management.
-- [ ] Add alerts for overdue tasks, rejected requests, report reminders, material shortages, purchase orders, and pending payments.
+- [x] Add site-specific and project-specific conversation lists.
+- [x] Add Instruction, Material Request, Issue, Technical Support, General, and Urgent categories.
+- [x] Persist message history.
+- [x] Add message attachment support.
+- [x] Replace demonstration notifications with real event-driven notifications.
+- [x] Add read and unread state management.
+- [x] Add alerts for overdue tasks, rejected requests, report reminders, material shortages, purchase orders, and pending payments.
 
 ### Documents
 
-- [ ] Organize documents by project, site, and category.
-- [ ] Add quotations, payment documents, schedules, bills, measurement sheets, drawings, and supporting-document filters.
-- [ ] Add document preview and download behavior.
-- [ ] Persist uploaded documents and metadata.
+- [x] Organize documents by project, site, and category.
+- [x] Add quotations, payment documents, schedules, bills, measurement sheets, drawings, and supporting-document filters.
+- [x] Add document preview and download behavior.
+- [x] Persist uploaded documents and metadata.
 
 ## Pending
 
@@ -229,8 +229,8 @@ Last updated: 23 September 2026
 
 - [x] Add local phone-number and OTP sign-in plus sign-out gating for Company Admin, Supervisor, and Vendor users.
 - [x] Map separate demo phone accounts to Admin, Supervisor, and Vendor permissions.
-- [ ] Add secure session handling.
-- [ ] Load the signed-in Supervisor's assigned projects and sites.
+- [x] Add encrypted local session handling with expiry and sign-out cleanup.
+- [x] Load the signed-in Supervisor's assigned projects and sites from the local account profile.
 - [ ] Enforce server-provided role permissions for Company Admin, Supervisor, and Vendor users.
 - [ ] Add read-only Client access in a later phase.
 - [ ] Add empty, loading, offline, validation, and error states across all screens.
@@ -238,9 +238,9 @@ Last updated: 23 September 2026
 
 ### Supervisor activity and site visits
 
-- [ ] Add supervisor activity timeline covering tasks, visits, reports, requests, expenses, attendance, issues, and messages.
-- [ ] Add site-visit entry with visitor, date, in time, out time, purpose, remarks, and images.
-- [ ] Add site-visit history.
+- [x] Add supervisor activity timeline covering tasks, visits, reports, requests, expenses, attendance, issues, and messages.
+- [x] Add site-visit entry with visitor, date, in time, out time, purpose, remarks, and images.
+- [x] Add site-visit history.
 
 ### Company Admin mobile operations
 

@@ -1,18 +1,117 @@
 import { FontAwesome6 } from "@expo/vector-icons";
 import { useMemo, useState } from "react";
-import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
+import {
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+  View,
+} from "react-native";
 import { Task } from "../data";
+import { AttendanceEntry } from "../hooks/useAttendance";
+import { FinanceRecord } from "../hooks/useFinance";
+import { IssueStatus, SiteIssue } from "../hooks/useIssues";
 import { TaskUpdateInput } from "../hooks/useTasks";
 import { colors, radius } from "../theme";
+import { FontAwesomeIcon } from "../types/icons";
 import { useAppDialog } from "../components/AppDialog";
-import { formatDateTime } from "../utils/date";
+import { formatDate, formatDateTime } from "../utils/date";
+import { DataTable, DataTableColumn } from "../components/DataTable";
+
+const attendanceColumns: DataTableColumn<AttendanceEntry>[] = [
+  {
+    key: "date",
+    label: "DATE",
+    width: 100,
+    render: (row) => formatDate(row.date),
+  },
+  {
+    key: "worker",
+    label: "WORKER",
+    width: 130,
+    render: (row) => row.workerName,
+  },
+  { key: "trade", label: "TRADE", width: 100, render: (row) => row.trade },
+  { key: "status", label: "STATUS", width: 90, render: (row) => row.status },
+  {
+    key: "hours",
+    label: "IN / OUT",
+    width: 110,
+    render: (row) =>
+      row.inTime && row.outTime ? `${row.inTime} / ${row.outTime}` : "—",
+  },
+  {
+    key: "overtime",
+    label: "OT",
+    width: 70,
+    render: (row) => `${row.overtimeHours}h`,
+  },
+  {
+    key: "remarks",
+    label: "REMARKS",
+    width: 150,
+    render: (row) => row.remarks ?? "—",
+  },
+];
+
+function nextIssueAction(status: IssueStatus): {
+  status: IssueStatus;
+  label: string;
+  note: string;
+  icon: FontAwesomeIcon;
+} | null {
+  if (status === "Open") {
+    return {
+      status: "Assigned",
+      label: "Assign issue",
+      note: "Assigned for action by Company Admin.",
+      icon: "user-check",
+    };
+  }
+  if (status === "Assigned") {
+    return {
+      status: "In Progress",
+      label: "Start resolution",
+      note: "Resolution work started.",
+      icon: "play",
+    };
+  }
+  if (status === "In Progress") {
+    return {
+      status: "Resolved",
+      label: "Mark resolved",
+      note: "",
+      icon: "circle-check",
+    };
+  }
+  if (status === "Resolved") {
+    return {
+      status: "Closed",
+      label: "Close record",
+      note: "Resolution confirmed and record closed.",
+      icon: "lock",
+    };
+  }
+  return null;
+}
 
 export function AdminApprovalsScreen({
   tasks,
   onVerify,
+  attendanceEntries,
+  financeRecords,
+  onUpdateFinanceStatus,
+  issues,
+  onUpdateIssueStatus,
 }: {
   tasks: Task[];
   onVerify: (input: TaskUpdateInput) => void;
+  attendanceEntries: AttendanceEntry[];
+  financeRecords: FinanceRecord[];
+  onUpdateFinanceStatus: (id: string, status: "Approved" | "Rejected") => void;
+  issues: SiteIssue[];
+  onUpdateIssueStatus: (id: string, status: IssueStatus, note: string) => void;
 }) {
   const dialog = useAppDialog();
   const reviewTasks = useMemo(
@@ -23,6 +122,12 @@ export function AdminApprovalsScreen({
     [tasks],
   );
   const [expandedTaskId, setExpandedTaskId] = useState<string | null>(null);
+  const [resolutionNotes, setResolutionNotes] = useState<
+    Record<string, string>
+  >({});
+  const submittedFinance = financeRecords.filter(
+    (record) => record.kind === "Expense" || record.kind === "Local Purchase",
+  );
 
   const verifyTask = (task: Task) => {
     dialog.show(
@@ -83,6 +188,192 @@ export function AdminApprovalsScreen({
             icon="circle-check"
           />
         </View>
+
+        <View style={styles.attendanceSection}>
+          <View>
+            <Text style={styles.sectionTitle}>Workforce attendance</Text>
+            <Text style={styles.sectionCopy}>
+              Supervisor-submitted daily records
+            </Text>
+          </View>
+          <DataTable
+            title="Attendance history"
+            columns={attendanceColumns}
+            rows={attendanceEntries}
+            rowKey={(row) => row.id}
+            emptyMessage="No attendance has been submitted yet."
+          />
+        </View>
+
+        <View style={styles.financeSection}>
+          <View>
+            <Text style={styles.sectionTitle}>Expense approvals</Text>
+            <Text style={styles.sectionCopy}>
+              Approved records are deducted from site cash
+            </Text>
+          </View>
+          {submittedFinance.map((record) => (
+            <View key={record.id} style={styles.financeRow}>
+              <View style={styles.financeRowTop}>
+                <View style={styles.cardHeading}>
+                  <Text style={styles.taskTitle}>{record.purpose}</Text>
+                  <Text style={styles.meta}>
+                    {record.reference} · {formatDate(record.date)} ·{" "}
+                    {record.paidTo}
+                  </Text>
+                </View>
+                <Text style={styles.financeAmount}>
+                  ₹{record.amount.toLocaleString("en-IN")}
+                </Text>
+              </View>
+              {record.status === "Pending" ? (
+                <View style={styles.financeActions}>
+                  <Pressable
+                    accessibilityRole="button"
+                    onPress={() => onUpdateFinanceStatus(record.id, "Rejected")}
+                    style={[styles.financeAction, styles.rejectAction]}
+                  >
+                    <FontAwesome6
+                      name="xmark"
+                      size={13}
+                      color={colors.danger}
+                    />
+                    <Text style={styles.rejectActionText}>Reject</Text>
+                  </Pressable>
+                  <Pressable
+                    accessibilityRole="button"
+                    onPress={() => onUpdateFinanceStatus(record.id, "Approved")}
+                    style={[styles.financeAction, styles.approveAction]}
+                  >
+                    <FontAwesome6 name="check" size={13} color={colors.white} />
+                    <Text style={styles.approveActionText}>Approve</Text>
+                  </Pressable>
+                </View>
+              ) : (
+                <View style={styles.financeStatusRow}>
+                  <FontAwesome6
+                    name={
+                      record.status === "Approved"
+                        ? "circle-check"
+                        : "circle-xmark"
+                    }
+                    size={13}
+                    color={
+                      record.status === "Approved"
+                        ? colors.success
+                        : colors.danger
+                    }
+                  />
+                  <Text
+                    style={[
+                      styles.financeStatusText,
+                      record.status === "Rejected" &&
+                        styles.financeRejectedText,
+                    ]}
+                  >
+                    {record.status}
+                  </Text>
+                </View>
+              )}
+            </View>
+          ))}
+          {submittedFinance.length === 0 ? (
+            <Text style={styles.emptyCopy}>No expenses awaiting review.</Text>
+          ) : null}
+        </View>
+
+        <View style={styles.financeSection}>
+          <View>
+            <Text style={styles.sectionTitle}>Issues and support</Text>
+            <Text style={styles.sectionCopy}>
+              Assign, resolve, and close site requests
+            </Text>
+          </View>
+          {issues.map((issue) => {
+            const next = nextIssueAction(issue.status);
+            const resolutionNote = resolutionNotes[issue.id] ?? "";
+            return (
+              <View key={issue.id} style={styles.financeRow}>
+                <View style={styles.financeRowTop}>
+                  <View style={styles.cardHeading}>
+                    <Text style={styles.taskTitle}>{issue.title}</Text>
+                    <Text style={styles.meta}>
+                      {issue.id} · {issue.kind} · {issue.priority}
+                    </Text>
+                  </View>
+                  <View style={styles.status}>
+                    <Text style={styles.statusText}>{issue.status}</Text>
+                  </View>
+                </View>
+                <Text style={styles.description}>{issue.remarks}</Text>
+                <Text style={styles.meta}>
+                  {issue.photoNames.length + issue.videoNames.length}{" "}
+                  attachments · {formatDate(issue.reportedDate)}
+                </Text>
+                {issue.status === "In Progress" ? (
+                  <TextInput
+                    value={resolutionNote}
+                    onChangeText={(value) =>
+                      setResolutionNotes((current) => ({
+                        ...current,
+                        [issue.id]: value,
+                      }))
+                    }
+                    style={styles.resolutionInput}
+                    placeholder="Enter the resolution before resolving"
+                    placeholderTextColor="#969E9B"
+                    multiline
+                  />
+                ) : null}
+                {issue.resolution ? (
+                  <View style={styles.resolutionNote}>
+                    <FontAwesome6
+                      name="circle-check"
+                      size={13}
+                      color={colors.success}
+                    />
+                    <Text style={styles.resolutionText}>
+                      {issue.resolution}
+                    </Text>
+                  </View>
+                ) : null}
+                {next ? (
+                  <Pressable
+                    accessibilityRole="button"
+                    onPress={() => {
+                      const note =
+                        issue.status === "In Progress"
+                          ? resolutionNote.trim()
+                          : next.note;
+                      if (!note) {
+                        dialog.show(
+                          "Resolution required",
+                          "Enter a resolution note before marking this record resolved.",
+                        );
+                        return;
+                      }
+                      onUpdateIssueStatus(issue.id, next.status, note);
+                      setResolutionNotes((current) => ({
+                        ...current,
+                        [issue.id]: "",
+                      }));
+                    }}
+                    style={styles.issueAction}
+                  >
+                    <FontAwesome6
+                      name={next.icon}
+                      size={13}
+                      color={colors.white}
+                    />
+                    <Text style={styles.approveActionText}>{next.label}</Text>
+                  </Pressable>
+                ) : null}
+              </View>
+            );
+          })}
+        </View>
+
+        <Text style={styles.sectionTitle}>Task verification</Text>
 
         {reviewTasks.length === 0 ? (
           <View style={styles.emptyState}>
@@ -291,6 +582,81 @@ const styles = StyleSheet.create({
     marginTop: 8,
   },
   summaryLabel: { color: colors.inkMuted, fontSize: 10, marginTop: 2 },
+  attendanceSection: {
+    gap: 10,
+    padding: 14,
+    marginBottom: 6,
+    borderRadius: radius.md,
+    backgroundColor: colors.surface,
+    borderWidth: 1,
+    borderColor: colors.border,
+  },
+  sectionTitle: { color: colors.ink, fontSize: 14, fontWeight: "800" },
+  sectionCopy: { color: colors.inkMuted, fontSize: 10, marginTop: 3 },
+  financeSection: {
+    gap: 10,
+    padding: 14,
+    marginBottom: 6,
+    borderRadius: radius.md,
+    backgroundColor: colors.surface,
+    borderWidth: 1,
+    borderColor: colors.border,
+  },
+  financeRow: {
+    gap: 10,
+    paddingTop: 12,
+    borderTopWidth: 1,
+    borderTopColor: colors.border,
+  },
+  financeRowTop: { flexDirection: "row", alignItems: "center", gap: 10 },
+  financeAmount: { color: colors.ink, fontSize: 15, fontWeight: "800" },
+  financeActions: { flexDirection: "row", gap: 8 },
+  financeAction: {
+    flex: 1,
+    minHeight: 40,
+    borderRadius: radius.sm,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 7,
+  },
+  rejectAction: { backgroundColor: colors.dangerSoft },
+  approveAction: { backgroundColor: colors.primary },
+  rejectActionText: { color: colors.danger, fontSize: 11, fontWeight: "800" },
+  approveActionText: { color: colors.white, fontSize: 11, fontWeight: "800" },
+  financeStatusRow: { flexDirection: "row", alignItems: "center", gap: 7 },
+  financeStatusText: { color: colors.success, fontSize: 10, fontWeight: "800" },
+  financeRejectedText: { color: colors.danger },
+  resolutionInput: {
+    minHeight: 70,
+    borderRadius: radius.sm,
+    borderWidth: 1,
+    borderColor: colors.border,
+    color: colors.ink,
+    padding: 11,
+    fontSize: 11,
+    textAlignVertical: "top",
+  },
+  resolutionNote: {
+    flexDirection: "row",
+    alignItems: "flex-start",
+    gap: 7,
+  },
+  resolutionText: {
+    flex: 1,
+    color: colors.success,
+    fontSize: 10,
+    lineHeight: 15,
+  },
+  issueAction: {
+    minHeight: 40,
+    borderRadius: radius.sm,
+    backgroundColor: colors.primary,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 7,
+  },
   card: {
     borderRadius: radius.md,
     backgroundColor: colors.surface,

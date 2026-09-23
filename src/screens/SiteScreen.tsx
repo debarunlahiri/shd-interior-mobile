@@ -1,8 +1,8 @@
 import { FontAwesome6 } from "@expo/vector-icons";
 import { useState } from "react";
 import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
-import { attendance } from "../data";
 import { SiteInventoryPanel } from "../components/SiteInventoryPanel";
+import { AttendanceEntry, attendanceRoster } from "../hooks/useAttendance";
 import { ManagedMaterial, ManagedUnit } from "../hooks/useAdminMasters";
 import {
   InventoryBalance,
@@ -29,6 +29,9 @@ export function SiteScreen({
   transactions,
   taskOptions,
   onAddInventoryTransaction,
+  attendanceEntries,
+  projectName,
+  siteName,
 }: {
   onSheet: (sheet: SheetName) => void;
   materials: ManagedMaterial[];
@@ -37,14 +40,23 @@ export function SiteScreen({
   transactions: InventoryTransaction[];
   taskOptions: { label: string; value: string }[];
   onAddInventoryTransaction: (input: InventoryTransactionInput) => void;
+  attendanceEntries: AttendanceEntry[];
+  projectName?: string;
+  siteName?: string;
 }) {
   const [section, setSection] = useState<Section>("Overview");
   return (
     <View style={styles.screen}>
       <View style={styles.header}>
         <View>
-          <Text style={styles.title}>Palm Grove</Text>
-          <Text style={styles.subtitle}>Villa 18 · Active site</Text>
+          <Text style={styles.title}>
+            {projectName ?? "No assigned project"}
+          </Text>
+          <Text style={styles.subtitle}>
+            {siteName
+              ? `${siteName} · Active site`
+              : "No active site assignment"}
+          </Text>
         </View>
         <IconButton icon="ellipsis" />
       </View>
@@ -83,7 +95,7 @@ export function SiteScreen({
             onRequestMaterial={() => onSheet("material")}
           />
         ) : (
-          <Attendance onSheet={onSheet} />
+          <Attendance onSheet={onSheet} entries={attendanceEntries} />
         )}
       </ScrollView>
     </View>
@@ -139,16 +151,36 @@ function Overview({ onSheet }: { onSheet: (sheet: SheetName) => void }) {
     </>
   );
 }
-function Attendance({ onSheet }: { onSheet: (sheet: SheetName) => void }) {
+function Attendance({
+  onSheet,
+  entries,
+}: {
+  onSheet: (sheet: SheetName) => void;
+  entries: AttendanceEntry[];
+}) {
+  const today = new Date();
+  const localToday = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, "0")}-${String(today.getDate()).padStart(2, "0")}`;
+  const todayEntries = entries.filter((entry) => entry.date === localToday);
+  const visibleRoster = attendanceRoster.map((worker) => ({
+    ...worker,
+    status:
+      todayEntries.find((entry) => entry.workerName === worker.workerName)
+        ?.status ?? "Not marked",
+  }));
+  const presentCount = todayEntries.filter(
+    (entry) => entry.status === "Present" || entry.status === "Half Day",
+  ).length;
   return (
     <>
       <View style={styles.attendanceHero}>
         <View>
-          <Text style={styles.attendanceCount}>26</Text>
+          <Text style={styles.attendanceCount}>{presentCount}</Text>
           <Text style={styles.attendanceLabel}>Present today</Text>
         </View>
         <View style={styles.attendanceRight}>
-          <Text style={styles.attendanceLabel}>28 total workforce</Text>
+          <Text style={styles.attendanceLabel}>
+            {attendanceRoster.length} total workforce
+          </Text>
           <PrimaryButton
             label="Mark"
             icon="user-plus"
@@ -157,20 +189,20 @@ function Attendance({ onSheet }: { onSheet: (sheet: SheetName) => void }) {
         </View>
       </View>
       <Surface style={styles.listCard}>
-        {attendance.map((person, index) => (
-          <View key={person.name}>
+        {visibleRoster.map((person, index) => (
+          <View key={person.workerName}>
             {index ? <View style={styles.divider} /> : null}
             <View style={styles.personRow}>
               <View style={styles.personAvatar}>
                 <Text style={styles.personInitial}>
-                  {person.name
+                  {person.workerName
                     .split(" ")
                     .map((part) => part[0])
                     .join("")}
                 </Text>
               </View>
               <View style={styles.rowInfo}>
-                <Text style={styles.rowTitle}>{person.name}</Text>
+                <Text style={styles.rowTitle}>{person.workerName}</Text>
                 <Text style={styles.rowMeta}>{person.trade}</Text>
               </View>
               <StatusPill label={person.status} />

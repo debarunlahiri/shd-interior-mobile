@@ -25,7 +25,7 @@ export default function App() {
                 <ActivityIndicator size="small" color={colors.primary} />
               </View>
             ) : session ? (
-              <AppNavigator role={session.role} onSignOut={signOut} />
+              <AppNavigator session={session} onSignOut={signOut} />
             ) : (
               <LoginScreen onSignIn={signIn} />
             )}

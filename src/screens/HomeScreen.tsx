@@ -2,6 +2,7 @@ import { FontAwesome6 } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
 import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import { Task } from "../data";
+import { SiteIssue } from "../hooks/useIssues";
 import { colors, shadow } from "../theme";
 import { FontAwesomeIcon } from "../types/icons";
 import { SheetName, TabName } from "../types/navigation";
@@ -13,12 +14,27 @@ export function HomeScreen({
   onSheet,
   onTask,
   tasks,
+  issues,
+  unreadNotificationCount,
+  userName,
+  projectName,
+  siteName,
+  siteLocation,
 }: {
   onTab: (tab: TabName) => void;
   onSheet: (sheet: SheetName) => void;
   onTask: (task: Task) => void;
   tasks: Task[];
+  issues: SiteIssue[];
+  unreadNotificationCount: number;
+  userName: string;
+  projectName?: string;
+  siteName?: string;
+  siteLocation?: string;
 }) {
+  const openIssueCount = issues.filter(
+    (issue) => issue.status !== "Resolved" && issue.status !== "Closed",
+  ).length;
   return (
     <ScrollView
       style={styles.screen}
@@ -28,12 +44,12 @@ export function HomeScreen({
       <View style={styles.topBar}>
         <View>
           <Text style={styles.eyebrow}>SATURDAY, 20 SEPTEMBER</Text>
-          <Text style={styles.greeting}>Good morning, Arjun</Text>
+          <Text style={styles.greeting}>Good morning, {userName}</Text>
         </View>
         <View style={styles.actions}>
           <IconButton
             icon="bell"
-            badge
+            badge={unreadNotificationCount > 0}
             onPress={() => onSheet("notifications")}
           />
           <Pressable style={styles.avatar} onPress={() => onSheet("profile")}>
@@ -56,14 +72,20 @@ export function HomeScreen({
             color="rgba(255,255,255,.75)"
           />
         </View>
-        <Text style={styles.projectName}>Palm Grove Residence</Text>
+        <Text style={styles.projectName}>
+          {projectName ?? "No project assigned"}
+        </Text>
         <View style={styles.location}>
           <FontAwesome6
             name="location-dot"
             size={13}
             color="rgba(255,255,255,.68)"
           />
-          <Text style={styles.locationText}>Villa 18 · Gurugram, Haryana</Text>
+          <Text style={styles.locationText}>
+            {siteName && siteLocation
+              ? `${siteName} · ${siteLocation}`
+              : "No active site assignment"}
+          </Text>
         </View>
         <View style={styles.progressTop}>
           <Text style={styles.progressLabel}>Overall progress</Text>
@@ -99,7 +121,7 @@ export function HomeScreen({
         />
         <Stat
           icon="triangle-exclamation"
-          value="2"
+          value={`${openIssueCount}`}
           label="Open issues"
           danger
           onPress={() => onSheet("issue")}

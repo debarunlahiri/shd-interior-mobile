@@ -68,8 +68,16 @@ export function ProgressBar({
 }
 
 export function StatusPill({ label }: { label: string }) {
-  const danger = ["Critical", "Blocked", "Absent", "Low stock"].includes(label);
-  const warning = ["High", "Pending", "Half day", "Assigned"].includes(label);
+  const danger = [
+    "Critical",
+    "Blocked",
+    "Absent",
+    "Low stock",
+    "Not marked",
+  ].includes(label);
+  const warning = ["High", "Pending", "Half day", "Assigned", "Leave"].includes(
+    label,
+  );
   const backgroundColor = danger
     ? colors.dangerSoft
     : warning

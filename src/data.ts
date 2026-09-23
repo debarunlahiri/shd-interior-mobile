@@ -1,9 +1,5 @@
 export type TaskStatus =
-  | "Assigned"
-  | "In progress"
-  | "Blocked"
-  | "Completed"
-  | "Verified";
+  "Assigned" | "In progress" | "Blocked" | "Completed" | "Verified";
 
 export type TaskUpdate = {
   id: string;
@@ -123,46 +119,4 @@ export const attendance = [
   { name: "Imran Ali", trade: "Electrician", status: "Present" },
   { name: "Sunil Das", trade: "Painter", status: "Half day" },
   { name: "Manoj Yadav", trade: "Helper", status: "Absent" },
-];
-
-export const notifications = [
-  {
-    title: "Material request approved",
-    detail: "MR-204 · White cement and primer",
-    time: "12 min ago",
-    icon: "cube-outline",
-  },
-  {
-    title: "Task deadline approaching",
-    detail: "Kitchen cabinet measurements due at 2:30 PM",
-    time: "36 min ago",
-    icon: "time-outline",
-  },
-  {
-    title: "New instruction from admin",
-    detail: "Review the revised lighting plan before execution",
-    time: "1 hr ago",
-    icon: "chatbubble-outline",
-  },
-];
-
-export const expenses = [
-  {
-    label: "Local hardware purchase",
-    meta: "Material · UPI",
-    amount: "₹2,850",
-    status: "Approved",
-  },
-  {
-    label: "Worker transport",
-    meta: "Transport · Cash",
-    amount: "₹1,200",
-    status: "Pending",
-  },
-  {
-    label: "Drill machine repair",
-    meta: "Equipment · Cash",
-    amount: "₹950",
-    status: "Approved",
-  },
 ];

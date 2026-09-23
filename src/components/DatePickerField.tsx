@@ -1,6 +1,4 @@
-import DateTimePicker, {
-  DateTimePickerEvent,
-} from "@react-native-community/datetimepicker";
+import DateTimePicker from "@react-native-community/datetimepicker";
 import { FontAwesome6 } from "@expo/vector-icons";
 import { useState } from "react";
 import {
@@ -42,12 +40,9 @@ export function DatePickerField({
     setOpen(true);
   };
 
-  const handleAndroidChange = (
-    event: DateTimePickerEvent,
-    selectedDate?: Date,
-  ) => {
+  const handleAndroidValueChange = (_event: unknown, selectedDate: Date) => {
     setOpen(false);
-    if (event.type === "set" && selectedDate) onChange(toIsoDate(selectedDate));
+    onChange(toIsoDate(selectedDate));
   };
 
   return (
@@ -84,7 +79,8 @@ export function DatePickerField({
           display="calendar"
           minimumDate={minimumDate ? parseIsoDate(minimumDate) : undefined}
           maximumDate={maximumDate ? parseIsoDate(maximumDate) : undefined}
-          onChange={handleAndroidChange}
+          onValueChange={handleAndroidValueChange}
+          onDismiss={() => setOpen(false)}
         />
       ) : null}
 
@@ -126,9 +122,7 @@ export function DatePickerField({
                 maximumDate={
                   maximumDate ? parseIsoDate(maximumDate) : undefined
                 }
-                onChange={(_, selectedDate) => {
-                  if (selectedDate) setDraftDate(selectedDate);
-                }}
+                onValueChange={(_, selectedDate) => setDraftDate(selectedDate)}
                 style={styles.picker}
               />
             </View>
