@@ -1,30 +1,64 @@
 import { FontAwesome6 } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
 import { useState } from "react";
-import {
-  Pressable,
-  ScrollView,
-  Text,
-  TextInput,
-  View,
-} from "react-native";
+import { Pressable, ScrollView, Text, TextInput, View } from "react-native";
 import { expenses, notifications } from "../../data";
+import {
+  OperationalRecord,
+  OperationalRecordInput,
+  OperationalRecordKind,
+} from "../../hooks/useOperationalRecords";
 import { colors } from "../../theme";
 import { FontAwesomeIcon } from "../../types/icons";
 import { SheetName } from "../../types/navigation";
+import { formatDateTime } from "../../utils/date";
 import { AttachmentPicker } from "../AttachmentPicker";
+import { useAppDialog } from "../AppDialog";
 import { DropdownField } from "../DropdownField";
-import {
-  PrimaryButton,
-  StatusPill,
-  Surface,
-} from "../ui";
+import { PrimaryButton, StatusPill, Surface } from "../ui";
 import { sheetStyles } from "./styles";
 
-export function SimpleForm({ kind, onSubmit }: { kind: SheetName; onSubmit: () => void }) {
+export function SimpleForm({
+  kind,
+  records,
+  onSubmit,
+}: {
+  kind: OperationalRecordKind;
+  records: OperationalRecord[];
+  onSubmit: (input: OperationalRecordInput) => void;
+}) {
+  const dialog = useAppDialog();
   const config = getSheetConfig(kind);
+  const [view, setView] = useState<"New" | "Records">("New");
   const [attachment, setAttachment] = useState<string | null>(null);
   const [values, setValues] = useState<Record<string, string>>({});
+  const [expandedId, setExpandedId] = useState<string | null>(null);
+  const matchingRecords = records.filter((record) => record.kind === kind);
+
+  const submit = () => {
+    const requiredFields = config.fields.filter(
+      (field) => !(kind === "attendance" && field === "REMARKS"),
+    );
+    if (requiredFields.some((field) => !values[field]?.trim())) {
+      dialog.show(
+        "Details required",
+        "Complete all required fields before saving this record.",
+      );
+      return;
+    }
+    onSubmit({
+      kind,
+      values: Object.fromEntries(
+        Object.entries(values).map(([field, value]) => [field, value.trim()]),
+      ),
+      attachment: attachment ?? undefined,
+    });
+    setValues({});
+    setAttachment(null);
+    setView("Records");
+    dialog.show("Record saved", "The new record is available in the list.");
+  };
+
   return (
     <ScrollView
       contentContainerStyle={sheetStyles.form}
@@ -37,46 +71,139 @@ export function SimpleForm({ kind, onSubmit }: { kind: SheetName; onSubmit: () =
           <Text style={sheetStyles.contextValue}>Villa 18 · Active site</Text>
         </View>
       </View>
-      {config.fields.map((field, index) => {
-        const dropdown = getDropdownConfig(kind, field);
-        return (
-          <View key={field} style={sheetStyles.fieldWrap}>
-            <Text style={sheetStyles.fieldLabel}>{field}</Text>
-            {dropdown ? (
-              <DropdownField
-                value={values[field]}
-                placeholder={dropdown.placeholder}
-                options={dropdown.options}
-                onChange={(value) =>
-                  setValues((current) => ({ ...current, [field]: value }))
-                }
-              />
-            ) : (
-              <TextInput
-                value={values[field] ?? ""}
-                onChangeText={(value) =>
-                  setValues((current) => ({ ...current, [field]: value }))
-                }
-                style={[
-                  sheetStyles.field,
-                  index === config.fields.length - 1 && sheetStyles.fieldLarge,
-                ]}
-                placeholder={config.placeholders[index]}
-                placeholderTextColor="#969E9B"
-                multiline={index === config.fields.length - 1}
-              />
-            )}
-          </View>
-        );
-      })}
-      <AttachmentPicker value={attachment} onChange={setAttachment} />
-      <PrimaryButton
-        label={config.button}
-        icon="circle-check"
-        onPress={onSubmit}
-      />
+      <View style={sheetStyles.sheetTabs}>
+        {(["New", "Records"] as const).map((item) => (
+          <Pressable
+            key={item}
+            onPress={() => setView(item)}
+            style={[
+              sheetStyles.sheetTab,
+              view === item && sheetStyles.sheetTabActive,
+            ]}
+          >
+            <Text
+              style={[
+                sheetStyles.sheetTabText,
+                view === item && sheetStyles.sheetTabTextActive,
+              ]}
+            >
+              {item === "New"
+                ? config.newLabel
+                : `${config.listLabel} (${matchingRecords.length})`}
+            </Text>
+          </Pressable>
+        ))}
+      </View>
+      {view === "New" ? (
+        <>
+          {config.fields.map((field, index) => {
+            const dropdown = getDropdownConfig(kind, field);
+            return (
+              <View key={field} style={sheetStyles.fieldWrap}>
+                <Text style={sheetStyles.fieldLabel}>{field}</Text>
+                {dropdown ? (
+                  <DropdownField
+                    value={values[field]}
+                    placeholder={dropdown.placeholder}
+                    options={dropdown.options}
+                    onChange={(value) =>
+                      setValues((current) => ({ ...current, [field]: value }))
+                    }
+                  />
+                ) : (
+                  <TextInput
+                    value={values[field] ?? ""}
+                    onChangeText={(value) =>
+                      setValues((current) => ({ ...current, [field]: value }))
+                    }
+                    style={[
+                      sheetStyles.field,
+                      index === config.fields.length - 1 &&
+                        sheetStyles.fieldLarge,
+                    ]}
+                    placeholder={config.placeholders[index]}
+                    placeholderTextColor="#969E9B"
+                    keyboardType={
+                      kind === "expense" && field === "AMOUNT"
+                        ? "decimal-pad"
+                        : "default"
+                    }
+                    multiline={index === config.fields.length - 1}
+                  />
+                )}
+              </View>
+            );
+          })}
+          <AttachmentPicker value={attachment} onChange={setAttachment} />
+          <PrimaryButton
+            label={config.button}
+            icon="circle-check"
+            onPress={submit}
+          />
+        </>
+      ) : (
+        <View style={sheetStyles.requestList}>
+          {matchingRecords.map((record) => {
+            const expanded = expandedId === record.id;
+            return (
+              <Surface key={record.id} style={sheetStyles.requestCard}>
+                <Pressable
+                  onPress={() => setExpandedId(expanded ? null : record.id)}
+                  style={sheetStyles.requestCardTop}
+                >
+                  <View style={sheetStyles.flexNoMargin}>
+                    <Text style={sheetStyles.itemTitle}>
+                      {recordTitle(record)}
+                    </Text>
+                    <Text style={sheetStyles.itemMeta}>
+                      {record.id} · {formatDateTime(record.createdAt)}
+                    </Text>
+                  </View>
+                  <StatusPill label={record.status} />
+                  <FontAwesome6
+                    name={expanded ? "chevron-up" : "chevron-down"}
+                    size={11}
+                    color={colors.inkMuted}
+                  />
+                </Pressable>
+                {expanded ? (
+                  <View style={sheetStyles.requestDetail}>
+                    {Object.entries(record.values).map(([field, value]) => (
+                      <Info
+                        key={field}
+                        icon="circle-info"
+                        label={field}
+                        value={value || "—"}
+                      />
+                    ))}
+                    {record.attachment ? (
+                      <Info
+                        icon="paperclip"
+                        label="Attachment"
+                        value={record.attachment}
+                      />
+                    ) : null}
+                  </View>
+                ) : null}
+              </Surface>
+            );
+          })}
+          {matchingRecords.length === 0 ? (
+            <Text style={sheetStyles.note}>No records submitted yet.</Text>
+          ) : null}
+        </View>
+      )}
     </ScrollView>
   );
+}
+
+function recordTitle(record: OperationalRecord) {
+  if (record.kind === "expense")
+    return record.values.CATEGORY || "Site expense";
+  if (record.kind === "attendance") {
+    return record.values["WORKER NAME"] || "Attendance record";
+  }
+  return record.values.TITLE || "Reported issue";
 }
 
 function getDropdownConfig(kind: SheetName, field: string) {
@@ -229,11 +356,23 @@ export function Messages() {
 }
 function Bubble({ text, incoming }: { text: string; incoming?: boolean }) {
   return (
-    <View style={[sheetStyles.bubble, incoming ? sheetStyles.incoming : sheetStyles.outgoing]}>
-      <Text style={[sheetStyles.bubbleText, !incoming && sheetStyles.bubbleTextOutgoing]}>
+    <View
+      style={[
+        sheetStyles.bubble,
+        incoming ? sheetStyles.incoming : sheetStyles.outgoing,
+      ]}
+    >
+      <Text
+        style={[
+          sheetStyles.bubbleText,
+          !incoming && sheetStyles.bubbleTextOutgoing,
+        ]}
+      >
         {text}
       </Text>
-      <Text style={[sheetStyles.time, !incoming && sheetStyles.bubbleTime]}>Today</Text>
+      <Text style={[sheetStyles.time, !incoming && sheetStyles.bubbleTime]}>
+        Today
+      </Text>
     </View>
   );
 }
@@ -306,6 +445,8 @@ export function getSheetConfig(kind: SheetName) {
     fields: [] as string[],
     placeholders: [] as string[],
     button: "Submit",
+    newLabel: "New",
+    listLabel: "Records",
   };
   const forms = {
     report: {
@@ -319,6 +460,8 @@ export function getSheetConfig(kind: SheetName) {
         "Add supervisor remarks",
       ],
       button: "Submit daily report",
+      newLabel: "New report",
+      listLabel: "Reports",
     },
     material: {
       title: "Material request",
@@ -331,6 +474,8 @@ export function getSheetConfig(kind: SheetName) {
         "Explain where it is needed",
       ],
       button: "Send request",
+      newLabel: "New request",
+      listLabel: "Requests",
     },
     expense: {
       title: "Add site expense",
@@ -343,6 +488,8 @@ export function getSheetConfig(kind: SheetName) {
         "What was this expense for?",
       ],
       button: "Submit expense",
+      newLabel: "Add expense",
+      listLabel: "Expenses",
     },
     attendance: {
       title: "Mark attendance",
@@ -355,6 +502,8 @@ export function getSheetConfig(kind: SheetName) {
         "Optional note",
       ],
       button: "Save attendance",
+      newLabel: "Mark attendance",
+      listLabel: "Attendance",
     },
     issue: {
       title: "Report an issue",
@@ -367,6 +516,8 @@ export function getSheetConfig(kind: SheetName) {
         "Describe the issue clearly",
       ],
       button: "Report issue",
+      newLabel: "Report issue",
+      listLabel: "Issues",
     },
   };
   if (kind && kind in forms) return forms[kind as keyof typeof forms];
@@ -382,4 +533,3 @@ export function getSheetConfig(kind: SheetName) {
     ? { ...common, title: labels[kind][0], subtitle: labels[kind][1] }
     : common;
 }
-

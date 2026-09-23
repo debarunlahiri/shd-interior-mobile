@@ -5,6 +5,7 @@ export type TabName =
   | "AdminDashboard"
   | "Projects"
   | "Approvals"
+  | "AdminSetup"
   | "VendorHome"
   | "Orders"
   | "Deliveries"

@@ -4,6 +4,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { colors } from "../theme";
 import { RoleTab } from "../config/roles";
 import { TabName } from "../types/navigation";
+import { useTranslation } from "../localization";
 
 export function BottomTabs({
   active,
@@ -14,6 +15,7 @@ export function BottomTabs({
   onChange: (tab: TabName) => void;
   items: RoleTab[];
 }) {
+  const { t } = useTranslation();
   const insets = useSafeAreaInsets();
   const bottomPadding = Math.max(insets.bottom, 10);
 
@@ -53,7 +55,7 @@ export function BottomTabs({
               />
             </View>
             <Text style={[styles.label, selected && styles.labelActive]}>
-              {tab.label}
+              {t(tab.labelKey)}
             </Text>
           </Pressable>
         );

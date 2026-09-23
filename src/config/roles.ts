@@ -1,27 +1,44 @@
 import { FontAwesomeIcon } from "../types/icons";
 import { TabName } from "../types/navigation";
 import { UserRole } from "../types/roles";
+import { TranslationKey } from "../localization";
 
-export type RoleTab = { key: TabName; label: string; icon: FontAwesomeIcon };
+export type RoleTab = {
+  key: TabName;
+  labelKey: TranslationKey;
+  icon: FontAwesomeIcon;
+};
 
 export const roleTabs: Record<UserRole, RoleTab[]> = {
   Supervisor: [
-    { key: "Home", label: "Home", icon: "house" },
-    { key: "Tasks", label: "Tasks", icon: "list-check" },
-    { key: "Site", label: "Site", icon: "building" },
-    { key: "More", label: "More", icon: "grip" },
+    { key: "Home", labelKey: "common.home", icon: "house" },
+    { key: "Tasks", labelKey: "common.tasks", icon: "list-check" },
+    { key: "Site", labelKey: "common.site", icon: "building" },
+    { key: "More", labelKey: "common.more", icon: "grip" },
   ],
   Admin: [
-    { key: "AdminDashboard", label: "Dashboard", icon: "chart-line" },
-    { key: "Projects", label: "Projects", icon: "building" },
-    { key: "Approvals", label: "Approvals", icon: "clipboard-check" },
-    { key: "More", label: "More", icon: "grip" },
+    {
+      key: "AdminDashboard",
+      labelKey: "common.dashboard",
+      icon: "chart-line",
+    },
+    { key: "Projects", labelKey: "common.projects", icon: "building" },
+    {
+      key: "Approvals",
+      labelKey: "common.approvals",
+      icon: "clipboard-check",
+    },
+    { key: "More", labelKey: "common.more", icon: "grip" },
   ],
   Vendor: [
-    { key: "VendorHome", label: "Home", icon: "house" },
-    { key: "Orders", label: "Orders", icon: "file-invoice" },
-    { key: "Deliveries", label: "Deliveries", icon: "truck" },
-    { key: "More", label: "More", icon: "grip" },
+    { key: "VendorHome", labelKey: "common.home", icon: "house" },
+    { key: "Orders", labelKey: "common.orders", icon: "file-invoice" },
+    {
+      key: "Deliveries",
+      labelKey: "common.deliveries",
+      icon: "truck",
+    },
+    { key: "More", labelKey: "common.more", icon: "grip" },
   ],
 };
 

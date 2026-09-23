@@ -1,6 +1,6 @@
 # SHD Interior Application Task Tracker
 
-Last updated: 22 September 2026
+Last updated: 23 September 2026
 
 ## Status definitions
 
@@ -15,12 +15,12 @@ Last updated: 22 September 2026
 | Module                             | Status      | Current scope                                                            |
 | ---------------------------------- | ----------- | ------------------------------------------------------------------------ |
 | Application foundation             | Completed   | Modular Expo/React Native application, branding, icons, permissions      |
-| Role-aware application shell       | Completed   | Persistent Admin, Supervisor, and Vendor UI/navigation selection         |
+| Role-aware application shell       | Completed   | Phone-mapped Admin, Supervisor, and Vendor UI/navigation                 |
 | Supervisor dashboard               | Completed   | Local dashboard and assigned-site summary                                |
-| Supervisor task workflow           | In progress | Persistent local workflow complete; Admin verification pending           |
+| Supervisor task workflow           | Completed   | Persistent local workflow with Admin review and verification             |
 | Site progress updates              | Completed   | Persistent staged updates, media, remarks, percentage, and history table |
 | Daily progress reports             | Completed   | Full local report form, evidence, persistence, and filtered history      |
-| Materials and site inventory       | In progress | Request form and stock overview exist; transactions pending              |
+| Materials and site inventory       | Completed   | Persistent requests, stock movements, balances, and transaction history  |
 | Attendance                         | In progress | Roster and basic form exist; time and historical records pending         |
 | Expenses and cash                  | In progress | Submission form and sample ledger exist; live calculation pending        |
 | Issues and support                 | In progress | Basic reporting form exists; lifecycle and history pending               |
@@ -43,6 +43,11 @@ Last updated: 22 September 2026
 - [x] Configure the supplied SHD Interior app icon for the main icon, Android adaptive icon, splash screen, and web favicon.
 - [x] Add image, video, and document selection support.
 - [x] Add permission configuration for site photo and video selection.
+- [x] Add a shared native date picker with DD-MM-YYYY display and ISO date storage.
+- [x] Replace native alerts with a shared branded application dialog.
+- [x] Add a shared full-screen table viewer with fixed headers, drag navigation, and zoom controls.
+- [x] Add a shared percentage slider with 5% snapping, major points, and light haptic feedback.
+- [x] Add a typed shared localization provider and central English interface dictionary.
 
 ### Role-aware application shell
 
@@ -51,7 +56,7 @@ Last updated: 22 September 2026
 - [x] Add Company Admin dashboard, Projects, and Approvals mobile interfaces.
 - [x] Add Vendor dashboard, Purchase Orders, and Deliveries mobile interfaces.
 - [x] Display multi-entry Admin and Vendor records in structured tables.
-- [ ] Replace the local role selector with the authenticated user's server-assigned role.
+- [ ] Replace the demo phone-to-role mapping with the authenticated user's server-assigned role.
 - [ ] Add Client as a read-only role in a later phase.
 
 ### Supervisor navigation and dashboard
@@ -72,7 +77,7 @@ Last updated: 22 September 2026
 - [x] Add a dedicated Pending filter for Assigned and Blocked Supervisor tasks.
 - [x] Add task detail sheets.
 - [x] Add local completion-percentage selection.
-- [x] Allow any task completion percentage from 0% to 100% using a continuous slider.
+- [x] Select task completion from 0% to 100% using a shared slider with 5% snap points.
 - [x] Add task photo, video, or document evidence selection.
 - [x] Separate task photo/video evidence into Before Work, During Work, and After Work uploads.
 - [x] Show only the evidence upload matching the current task stage instead of displaying every stage on every update.
@@ -99,6 +104,7 @@ Last updated: 22 September 2026
 - [x] Display the supervisor profile and assigned site details.
 - [x] Add a local Admin and Supervisor conversation interface.
 - [x] Add local submission-success states for supervisor forms.
+- [x] Pair expense, attendance, and issue creation forms with persistent record lists and details.
 
 ### Site progress workflow
 
@@ -106,7 +112,7 @@ Last updated: 22 September 2026
 - [x] Add Before Work, During Work, and After Work stages.
 - [x] Add site photo and progress-video selection.
 - [x] Add work description, completion percentage, and daily remarks.
-- [x] Allow any site completion percentage from 0% to 100% using a continuous slider.
+- [x] Select site completion from 0% to 100% using a shared slider with 5% snap points.
 - [x] Persist progress records locally on the device.
 - [x] Display multiple historical progress records in a structured table.
 
@@ -121,8 +127,8 @@ Last updated: 22 September 2026
 - [x] Preserve progress updates when closing and reopening a task using local device storage.
 - [x] Add chronological task update history.
 - [x] Display multiple task updates in a structured table with date, status, progress, remark, and evidence columns.
-- [ ] Add Admin-only Verified status action.
-- [ ] Connect task updates to Admin review and verification.
+- [x] Add Admin-only Verified status action.
+- [x] Connect locally persisted task updates to Admin review and verification.
 
 ### Site progress updates
 
@@ -158,14 +164,14 @@ Last updated: 22 September 2026
 
 ### Site inventory and consumption
 
-- [ ] Replace inventory demonstration values with persisted site stock.
-- [ ] Add inventory detail and transaction history.
-- [ ] Add Material Received entry.
-- [ ] Add Material Used or Consumption entry with task/activity selection.
-- [ ] Add Material Returned entry.
-- [ ] Add Material Transfer entry.
-- [ ] Add Damaged Material and Wastage entry.
-- [ ] Calculate current available quantity from inventory transactions.
+- [x] Replace inventory demonstration values with persisted site stock.
+- [x] Add inventory detail and transaction history.
+- [x] Add Material Received entry.
+- [x] Add Material Used or Consumption entry with task/activity selection.
+- [x] Add Material Returned entry.
+- [x] Add Material Transfer entry.
+- [x] Add Damaged Material and Wastage entry.
+- [x] Calculate current available quantity from inventory transactions.
 
 ### Attendance
 
@@ -221,7 +227,8 @@ Last updated: 22 September 2026
 
 ### Authentication and access
 
-- [ ] Add sign-in and sign-out for Company Admin, Supervisor, and Vendor users.
+- [x] Add local phone-number and OTP sign-in plus sign-out gating for Company Admin, Supervisor, and Vendor users.
+- [x] Map separate demo phone accounts to Admin, Supervisor, and Vendor permissions.
 - [ ] Add secure session handling.
 - [ ] Load the signed-in Supervisor's assigned projects and sites.
 - [ ] Enforce server-provided role permissions for Company Admin, Supervisor, and Vendor users.
@@ -239,6 +246,7 @@ Last updated: 22 September 2026
 
 - [x] Create the local Company Admin dashboard and role-specific mobile navigation.
 - [x] Add local project-overview and pending-approval interfaces.
+- [x] Add locally persisted Admin management for users, vendors, materials, and units.
 - [ ] Add project creation, editing, status, cost, payment, expense, site-count, and completion summaries.
 - [ ] Add individual project overview with finance, sites, materials, progress, documents, client updates, and issues.
 - [ ] Add site creation, editing, Supervisor assignment, and Supervisor transfer.

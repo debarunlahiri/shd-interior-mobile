@@ -11,6 +11,7 @@
       "bundleIdentifier": "com.shdinterior.mobile"
     },
     "android": {
+      "softwareKeyboardLayoutMode": "resize",
       "adaptiveIcon": {
         "backgroundColor": "#064A3C",
         "foregroundImage": "./assets/shd-interior-adaptive.png"
@@ -38,7 +39,8 @@
           "photosPermission": "Allow SHD Interior to access site photos and videos for progress evidence."
         }
       ],
-      "expo-document-picker"
+      "expo-document-picker",
+      "@react-native-community/datetimepicker"
     ]
   }
 }

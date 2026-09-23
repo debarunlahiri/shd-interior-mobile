@@ -1,18 +1,14 @@
 import { FontAwesome6 } from "@expo/vector-icons";
-import Slider from "@react-native-community/slider";
 import { useEffect, useState } from "react";
-import {
-  Alert,
-  Pressable,
-  ScrollView,
-  Text,
-  TextInput,
-  View,
-} from "react-native";
-import { Task, TaskStatus } from "../../data";
+import { Pressable, ScrollView, Text, TextInput, View } from "react-native";
+import { Task, TaskStatus, TaskUpdate } from "../../data";
 import { TaskUpdateInput } from "../../hooks/useTasks";
 import { colors } from "../../theme";
+import { formatDate } from "../../utils/date";
 import { AttachmentPicker } from "../AttachmentPicker";
+import { useAppDialog } from "../AppDialog";
+import { DataTable, DataTableColumn } from "../DataTable";
+import { PercentageSlider } from "../PercentageSlider";
 import { PrimaryButton, StatusPill } from "../ui";
 import { SheetLayout } from "./SheetLayout";
 import { sheetStyles } from "./styles";
@@ -27,6 +23,7 @@ export function TaskSheet({
   onClose: () => void;
   onUpdate: (input: TaskUpdateInput) => void;
 }) {
+  const dialog = useAppDialog();
   const [progress, setProgress] = useState(0);
   const [beforeMedia, setBeforeMedia] = useState<string | null>(null);
   const [duringMedia, setDuringMedia] = useState<string | null>(null);
@@ -54,6 +51,7 @@ export function TaskSheet({
   }, [task?.id]);
 
   if (!task) return null;
+  const isVerified = task.status === "Verified";
   const current = progress;
   const activeEvidenceStage =
     status === "Assigned"
@@ -76,11 +74,11 @@ export function TaskSheet({
 
   const saveUpdate = () => {
     if (!remark.trim()) {
-      Alert.alert("Remark required", "Add a short work update before saving.");
+      dialog.show("Remark required", "Add a short work update before saving.");
       return;
     }
     if (status === "Completed" && current !== 100) {
-      Alert.alert(
+      dialog.show(
         "Completion must be 100%",
         "Set task progress to 100% before marking it completed.",
       );
@@ -93,7 +91,7 @@ export function TaskSheet({
           : activeEvidenceStage === "during"
             ? "During Work"
             : "After Work";
-      Alert.alert(
+      dialog.show(
         "Evidence required",
         `Upload a photo or video for ${evidenceLabel} before saving this update.`,
       );
@@ -115,50 +113,60 @@ export function TaskSheet({
       afterMediaName:
         activeEvidenceStage === "after" ? (afterMedia ?? undefined) : undefined,
     });
-    Alert.alert(
+    dialog.show(
       "Update saved",
       "Task progress and history were saved locally.",
     );
     onClose();
   };
   return (
-    <SheetLayout
-      visible
-      title={task.title}
-      eyebrow={task.id}
-      onClose={onClose}
-    >
+    <SheetLayout visible title={task.title} eyebrow={task.id} onClose={onClose}>
       <ScrollView contentContainerStyle={sheetStyles.taskContent}>
-            <View style={sheetStyles.pills}>
-              <StatusPill label={task.priority} />
-              <StatusPill label={task.status} />
-            </View>
-            <Text style={sheetStyles.description}>{task.description}</Text>
-            <Info icon="location-dot" label="Location" value={task.area} />
-            <Info icon="clock" label="Deadline" value={task.due} />
-            {task.status === "Assigned" ? (
-              <PrimaryButton
-                label="Start task"
-                icon="play"
-                onPress={() => {
-                  if (task.evidenceRequired && !beforeMedia) {
-                    Alert.alert(
-                      "Before Work evidence required",
-                      "Upload a before-work photo or video before starting this task.",
-                    );
-                    return;
-                  }
-                  onUpdate({
-                    taskId: task.id,
-                    status: "In progress",
-                    progress: current,
-                    remark: remark.trim() || "Task started",
-                    beforeMediaName: beforeMedia ?? undefined,
-                  });
-                  setStatus("In progress");
-                }}
-              />
-            ) : null}
+        <View style={sheetStyles.pills}>
+          <StatusPill label={task.priority} />
+          <StatusPill label={task.status} />
+        </View>
+        <Text style={sheetStyles.description}>{task.description}</Text>
+        <Info icon="location-dot" label="Location" value={task.area} />
+        <Info icon="clock" label="Deadline" value={task.due} />
+        {isVerified ? (
+          <View style={sheetStyles.requirementNote}>
+            <FontAwesome6
+              name="circle-check"
+              size={15}
+              color={colors.success}
+            />
+            <Text style={sheetStyles.requirementText}>
+              This task was reviewed and verified by Admin. Its completion
+              record is now read-only.
+            </Text>
+          </View>
+        ) : null}
+        {task.status === "Assigned" ? (
+          <PrimaryButton
+            label="Start task"
+            icon="play"
+            onPress={() => {
+              if (task.evidenceRequired && !beforeMedia) {
+                dialog.show(
+                  "Before Work evidence required",
+                  "Upload a before-work photo or video before starting this task.",
+                );
+                return;
+              }
+              onUpdate({
+                taskId: task.id,
+                status: "In progress",
+                progress: current,
+                remark: remark.trim() || "Task started",
+                beforeMediaName: beforeMedia ?? undefined,
+              });
+              setStatus("In progress");
+            }}
+          />
+        ) : null}
+        {!isVerified ? (
+          <>
             <Text style={sheetStyles.fieldLabel}>TASK STATUS</Text>
             <ScrollView
               horizontal
@@ -188,122 +196,149 @@ export function TaskSheet({
                 </Pressable>
               ))}
             </ScrollView>
-            <Text style={sheetStyles.fieldLabel}>COMPLETION</Text>
-            <Text style={sheetStyles.progressValue}>{current}%</Text>
-            <View style={sheetStyles.sliderCard}>
-              <Slider
-                style={sheetStyles.slider}
-                minimumValue={0}
-                maximumValue={100}
-                step={1}
-                value={current}
-                onValueChange={setProgress}
-                minimumTrackTintColor={colors.accent}
-                maximumTrackTintColor={colors.border}
-                thumbTintColor={colors.primary}
-                accessibilityLabel="Task completion percentage"
-                accessibilityValue={{ min: 0, max: 100, now: current }}
-              />
-              <View style={sheetStyles.sliderLabels}>
-                <Text style={sheetStyles.sliderLabel}>0%</Text>
-                <Text style={sheetStyles.sliderHint}>
-                  Slide to select any percentage
-                </Text>
-                <Text style={sheetStyles.sliderLabel}>100%</Text>
-              </View>
-            </View>
-            <View style={sheetStyles.fieldWrap}>
-              <Text style={sheetStyles.fieldLabel}>WORK REMARK</Text>
-              <TextInput
-                value={remark}
-                onChangeText={setRemark}
-                style={[sheetStyles.field, sheetStyles.fieldLarge]}
-                placeholder="Describe work completed, delays, or blockers"
-                placeholderTextColor="#969E9B"
-                multiline
-              />
-            </View>
-            {task.evidenceRequired ? (
-              <View style={sheetStyles.requirementNote}>
-                <FontAwesome6
-                  name="circle-info"
-                  size={15}
-                  color={colors.warning}
-                />
-                <Text style={sheetStyles.requirementText}>
-                  {activeEvidenceStage === "before"
-                    ? "Before Work evidence is required before starting."
-                    : activeEvidenceStage === "during"
-                      ? "During Work evidence is required with this progress update."
-                      : "After Work evidence is required to complete this task."}
-                </Text>
-              </View>
-            ) : null}
-            <View style={sheetStyles.evidenceStages}>
-              <View style={sheetStyles.evidenceStage}>
-                <View style={sheetStyles.evidenceStageHeader}>
-                  <View style={sheetStyles.evidenceStageNumber}>
-                    <Text style={sheetStyles.evidenceStageNumberText}>
-                      {activeEvidenceStage === "before"
-                        ? "1"
-                        : activeEvidenceStage === "during"
-                          ? "2"
-                          : "3"}
-                    </Text>
-                  </View>
-                  <View>
-                    <Text style={sheetStyles.evidenceStageTitle}>
-                      {activeEvidenceStage === "before"
-                        ? "Before Work"
-                        : activeEvidenceStage === "during"
-                          ? "During Work"
-                          : "After Work"}
-                    </Text>
-                    <Text style={sheetStyles.evidenceStageCopy}>
-                      {activeEvidenceStage === "before"
-                        ? "Initial condition before starting"
-                        : activeEvidenceStage === "during"
-                          ? "Current execution and progress"
-                          : "Completed work evidence"}
-                    </Text>
-                  </View>
+          </>
+        ) : null}
+        <Text style={sheetStyles.fieldLabel}>COMPLETION</Text>
+        <Text style={sheetStyles.progressValue}>{current}%</Text>
+        <PercentageSlider
+          value={current}
+          onChange={setProgress}
+          disabled={isVerified}
+          accessibilityLabel="Task completion percentage"
+        />
+        <View style={sheetStyles.fieldWrap}>
+          <Text style={sheetStyles.fieldLabel}>WORK REMARK</Text>
+          <TextInput
+            value={remark}
+            onChangeText={setRemark}
+            style={[sheetStyles.field, sheetStyles.fieldLarge]}
+            placeholder="Describe work completed, delays, or blockers"
+            placeholderTextColor="#969E9B"
+            multiline
+            editable={!isVerified}
+          />
+        </View>
+        {task.evidenceRequired && !isVerified ? (
+          <View style={sheetStyles.requirementNote}>
+            <FontAwesome6 name="circle-info" size={15} color={colors.warning} />
+            <Text style={sheetStyles.requirementText}>
+              {activeEvidenceStage === "before"
+                ? "Before Work evidence is required before starting."
+                : activeEvidenceStage === "during"
+                  ? "During Work evidence is required with this progress update."
+                  : "After Work evidence is required to complete this task."}
+            </Text>
+          </View>
+        ) : null}
+        {!isVerified ? (
+          <View style={sheetStyles.evidenceStages}>
+            <View style={sheetStyles.evidenceStage}>
+              <View style={sheetStyles.evidenceStageHeader}>
+                <View style={sheetStyles.evidenceStageNumber}>
+                  <Text style={sheetStyles.evidenceStageNumberText}>
+                    {activeEvidenceStage === "before"
+                      ? "1"
+                      : activeEvidenceStage === "during"
+                        ? "2"
+                        : "3"}
+                  </Text>
                 </View>
-                {activeEvidenceStage === "before" ? (
-                  <AttachmentPicker
-                    value={beforeMedia}
-                    onChange={setBeforeMedia}
-                    label="Upload before photo or video"
-                    mediaOnly
-                  />
-                ) : activeEvidenceStage === "during" ? (
-                  <AttachmentPicker
-                    value={duringMedia}
-                    onChange={setDuringMedia}
-                    label="Upload during photo or video"
-                    mediaOnly
-                  />
-                ) : (
-                  <AttachmentPicker
-                    value={afterMedia}
-                    onChange={setAfterMedia}
-                    label="Upload after photo or video"
-                    mediaOnly
-                  />
-                )}
+                <View>
+                  <Text style={sheetStyles.evidenceStageTitle}>
+                    {activeEvidenceStage === "before"
+                      ? "Before Work"
+                      : activeEvidenceStage === "during"
+                        ? "During Work"
+                        : "After Work"}
+                  </Text>
+                  <Text style={sheetStyles.evidenceStageCopy}>
+                    {activeEvidenceStage === "before"
+                      ? "Initial condition before starting"
+                      : activeEvidenceStage === "during"
+                        ? "Current execution and progress"
+                        : "Completed work evidence"}
+                  </Text>
+                </View>
               </View>
+              {activeEvidenceStage === "before" ? (
+                <AttachmentPicker
+                  value={beforeMedia}
+                  onChange={setBeforeMedia}
+                  label="Upload before photo or video"
+                  mediaOnly
+                />
+              ) : activeEvidenceStage === "during" ? (
+                <AttachmentPicker
+                  value={duringMedia}
+                  onChange={setDuringMedia}
+                  label="Upload during photo or video"
+                  mediaOnly
+                />
+              ) : (
+                <AttachmentPicker
+                  value={afterMedia}
+                  onChange={setAfterMedia}
+                  label="Upload after photo or video"
+                  mediaOnly
+                />
+              )}
             </View>
-            <PrimaryButton
-              label="Save task update"
-              icon="circle-check"
-              onPress={saveUpdate}
-            />
-            <TaskHistory task={task} />
+          </View>
+        ) : null}
+        {!isVerified ? (
+          <PrimaryButton
+            label="Save task update"
+            icon="circle-check"
+            onPress={saveUpdate}
+          />
+        ) : null}
+        <TaskHistory task={task} />
       </ScrollView>
     </SheetLayout>
   );
 }
 
 function TaskHistory({ task }: { task: Task }) {
+  const columns: DataTableColumn<TaskUpdate>[] = [
+    {
+      key: "date",
+      label: "Date",
+      width: 95,
+      render: (update) => formatDate(update.createdAt),
+    },
+    {
+      key: "status",
+      label: "Status",
+      width: 105,
+      render: (update) => update.status,
+    },
+    {
+      key: "progress",
+      label: "Progress",
+      width: 85,
+      render: (update) => `${update.progress}%`,
+    },
+    {
+      key: "remark",
+      label: "Remark",
+      width: 220,
+      render: (update) => update.remark,
+    },
+    {
+      key: "evidence",
+      label: "Evidence",
+      width: 235,
+      render: (update) =>
+        [
+          update.beforeMediaName && `Before: ${update.beforeMediaName}`,
+          update.duringMediaName && `During: ${update.duringMediaName}`,
+          update.afterMediaName && `After: ${update.afterMediaName}`,
+          update.evidenceName,
+        ]
+          .filter(Boolean)
+          .join(" · ") || "—",
+    },
+  ];
   return (
     <View style={sheetStyles.historySection}>
       <Text style={sheetStyles.fieldLabel}>UPDATE HISTORY</Text>
@@ -314,101 +349,17 @@ function TaskHistory({ task }: { task: Task }) {
             size={18}
             color={colors.inkMuted}
           />
-          <Text style={sheetStyles.emptyHistoryText}>No updates submitted yet.</Text>
+          <Text style={sheetStyles.emptyHistoryText}>
+            No updates submitted yet.
+          </Text>
         </View>
       ) : (
-        <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-          <View style={[sheetStyles.table, sheetStyles.taskHistoryTable]}>
-            <View style={[sheetStyles.tableRow, sheetStyles.tableHeader]}>
-              <Text
-                style={[
-                  sheetStyles.tableCell,
-                  sheetStyles.historyDateCell,
-                  sheetStyles.tableHeadText,
-                ]}
-              >
-                Date
-              </Text>
-              <Text
-                style={[
-                  sheetStyles.tableCell,
-                  sheetStyles.historyStatusCell,
-                  sheetStyles.tableHeadText,
-                ]}
-              >
-                Status
-              </Text>
-              <Text
-                style={[
-                  sheetStyles.tableCell,
-                  sheetStyles.historyProgressCell,
-                  sheetStyles.tableHeadText,
-                ]}
-              >
-                Progress
-              </Text>
-              <Text
-                style={[
-                  sheetStyles.tableCell,
-                  sheetStyles.historyRemarkCell,
-                  sheetStyles.tableHeadText,
-                ]}
-              >
-                Remark
-              </Text>
-              <Text
-                style={[
-                  sheetStyles.tableCell,
-                  sheetStyles.historyEvidenceCell,
-                  sheetStyles.tableHeadText,
-                ]}
-              >
-                Evidence
-              </Text>
-            </View>
-            {task.updates.map((update, index) => {
-              const evidence = [
-                update.beforeMediaName && `Before: ${update.beforeMediaName}`,
-                update.duringMediaName && `During: ${update.duringMediaName}`,
-                update.afterMediaName && `After: ${update.afterMediaName}`,
-                update.evidenceName,
-              ]
-                .filter(Boolean)
-                .join("\n");
-              return (
-                <View
-                  key={update.id}
-                  style={[
-                    sheetStyles.tableRow,
-                    index % 2 === 1 && sheetStyles.tableRowAlternate,
-                  ]}
-                >
-                  <Text style={[sheetStyles.tableCell, sheetStyles.historyDateCell]}>
-                    {new Date(update.createdAt).toLocaleDateString()}
-                  </Text>
-                  <Text style={[sheetStyles.tableCell, sheetStyles.historyStatusCell]}>
-                    {update.status}
-                  </Text>
-                  <Text style={[sheetStyles.tableCell, sheetStyles.historyProgressCell]}>
-                    {update.progress}%
-                  </Text>
-                  <Text
-                    style={[sheetStyles.tableCell, sheetStyles.historyRemarkCell]}
-                    numberOfLines={3}
-                  >
-                    {update.remark}
-                  </Text>
-                  <Text
-                    style={[sheetStyles.tableCell, sheetStyles.historyEvidenceCell]}
-                    numberOfLines={4}
-                  >
-                    {evidence || "—"}
-                  </Text>
-                </View>
-              );
-            })}
-          </View>
-        </ScrollView>
+        <DataTable
+          title="Task update history"
+          columns={columns}
+          rows={task.updates}
+          rowKey={(update) => update.id}
+        />
       )}
     </View>
   );

@@ -2,6 +2,7 @@ import { FontAwesome6 } from "@expo/vector-icons";
 import { ScrollView, StyleSheet, Text, View } from "react-native";
 import { colors } from "../theme";
 import { FontAwesomeIcon } from "../types/icons";
+import { DataTable } from "../components/DataTable";
 
 const content = {
   Projects: {
@@ -65,40 +66,17 @@ export function RoleModuleScreen({ module }: { module: keyof typeof content }) {
         contentContainerStyle={styles.content}
         showsVerticalScrollIndicator={false}
       >
-        <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-          <View style={styles.table}>
-            <View style={[styles.row, styles.headerRow]}>
-              {config.headers.map((header, index) => (
-                <Text
-                  key={header}
-                  style={[
-                    styles.cell,
-                    index === 0 && styles.firstCell,
-                    styles.headerText,
-                  ]}
-                >
-                  {header}
-                </Text>
-              ))}
-            </View>
-
-            {config.rows.map((row, rowIndex) => (
-              <View
-                key={row[0]}
-                style={[styles.row, rowIndex % 2 === 1 && styles.altRow]}
-              >
-                {row.map((value, index) => (
-                  <Text
-                    key={`${row[0]}-${index}`}
-                    style={[styles.cell, index === 0 && styles.firstCell]}
-                  >
-                    {value}
-                  </Text>
-                ))}
-              </View>
-            ))}
-          </View>
-        </ScrollView>
+        <DataTable
+          title={`${module} table`}
+          columns={config.headers.map((header, index) => ({
+            key: `${header}-${index}`,
+            label: header,
+            width: index === 0 ? 220 : 130,
+            render: (row: string[]) => row[index],
+          }))}
+          rows={config.rows}
+          rowKey={(row) => row[0]}
+        />
       </ScrollView>
     </View>
   );
@@ -124,32 +102,4 @@ const styles = StyleSheet.create({
   title: { color: colors.ink, fontSize: 24, fontWeight: "800" },
   subtitle: { color: colors.inkMuted, fontSize: 10, marginTop: 3 },
   content: { paddingHorizontal: 20, paddingBottom: 112 },
-  table: {
-    minWidth: 650,
-    borderWidth: 1,
-    borderColor: colors.border,
-    borderRadius: 16,
-    overflow: "hidden",
-  },
-  row: {
-    minHeight: 54,
-    flexDirection: "row",
-    alignItems: "center",
-    backgroundColor: colors.surface,
-  },
-  headerRow: { minHeight: 40, backgroundColor: colors.primarySoft },
-  altRow: { backgroundColor: "#FAFBFA" },
-  cell: {
-    width: 130,
-    paddingHorizontal: 12,
-    color: colors.ink,
-    fontSize: 10,
-  },
-  firstCell: { width: 220, fontWeight: "700" },
-  headerText: {
-    color: colors.primary,
-    fontSize: 9,
-    fontWeight: "800",
-    textTransform: "uppercase",
-  },
 });

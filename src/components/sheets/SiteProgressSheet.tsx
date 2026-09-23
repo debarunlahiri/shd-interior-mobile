@@ -1,21 +1,14 @@
 import { FontAwesome6 } from "@expo/vector-icons";
-import Slider from "@react-native-community/slider";
 import { useState } from "react";
-import {
-  Alert,
-  Pressable,
-  ScrollView,
-  Text,
-  TextInput,
-  View,
-} from "react-native";
-import {
-  ProgressStage,
-  SiteProgressEntry,
-} from "../../data";
+import { Pressable, ScrollView, Text, TextInput, View } from "react-native";
+import { ProgressStage, SiteProgressEntry } from "../../data";
 import { SiteProgressInput } from "../../hooks/useSiteProgress";
 import { colors } from "../../theme";
+import { formatDate } from "../../utils/date";
 import { AttachmentPicker } from "../AttachmentPicker";
+import { useAppDialog } from "../AppDialog";
+import { DataTable, DataTableColumn } from "../DataTable";
+import { PercentageSlider } from "../PercentageSlider";
 import { PrimaryButton } from "../ui";
 import { sheetStyles } from "./styles";
 
@@ -26,6 +19,7 @@ export function SiteProgress({
   entries: SiteProgressEntry[];
   onSubmit: (input: SiteProgressInput) => void;
 }) {
+  const dialog = useAppDialog();
   const [stage, setStage] = useState<ProgressStage>("During work");
   const [progress, setProgress] = useState(68);
   const [description, setDescription] = useState("");
@@ -35,14 +29,14 @@ export function SiteProgress({
 
   const submit = () => {
     if (!description.trim() || !remarks.trim()) {
-      Alert.alert(
+      dialog.show(
         "Details required",
         "Add the work description and daily remarks.",
       );
       return;
     }
     if (!mediaName) {
-      Alert.alert(
+      dialog.show(
         "Media required",
         "Attach a site photo or video for this progress stage.",
       );
@@ -103,26 +97,11 @@ export function SiteProgress({
         <Text style={sheetStyles.fieldLabel}>SITE COMPLETION</Text>
         <Text style={sheetStyles.progressHeadingValue}>{progress}%</Text>
       </View>
-      <View style={sheetStyles.sliderCard}>
-        <Slider
-          style={sheetStyles.slider}
-          minimumValue={0}
-          maximumValue={100}
-          step={1}
-          value={progress}
-          onValueChange={setProgress}
-          minimumTrackTintColor={colors.accent}
-          maximumTrackTintColor={colors.border}
-          thumbTintColor={colors.primary}
-          accessibilityLabel="Site completion percentage"
-          accessibilityValue={{ min: 0, max: 100, now: progress }}
-        />
-        <View style={sheetStyles.sliderLabels}>
-          <Text style={sheetStyles.sliderLabel}>0%</Text>
-          <Text style={sheetStyles.sliderHint}>Slide to select any percentage</Text>
-          <Text style={sheetStyles.sliderLabel}>100%</Text>
-        </View>
-      </View>
+      <PercentageSlider
+        value={progress}
+        onChange={setProgress}
+        accessibilityLabel="Site completion percentage"
+      />
       <View style={sheetStyles.fieldWrap}>
         <Text style={sheetStyles.fieldLabel}>WORK DESCRIPTION</Text>
         <TextInput
@@ -157,66 +136,40 @@ export function SiteProgress({
 }
 
 function ProgressHistoryTable({ entries }: { entries: SiteProgressEntry[] }) {
+  const columns: DataTableColumn<SiteProgressEntry>[] = [
+    {
+      key: "date",
+      label: "Date",
+      width: 95,
+      render: (entry) => formatDate(entry.createdAt),
+    },
+    {
+      key: "stage",
+      label: "Stage",
+      width: 115,
+      render: (entry) => entry.stage,
+    },
+    {
+      key: "work",
+      label: "Work",
+      width: 260,
+      render: (entry) => entry.workDescription,
+    },
+    {
+      key: "progress",
+      label: "Progress",
+      width: 90,
+      render: (entry) => `${entry.progress}%`,
+    },
+  ];
   return (
     <View style={sheetStyles.progressHistory}>
-      <Text style={sheetStyles.fieldLabel}>PROGRESS HISTORY</Text>
-      <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-        <View style={sheetStyles.table}>
-          <View style={[sheetStyles.tableRow, sheetStyles.tableHeader]}>
-            <Text
-              style={[sheetStyles.tableCell, sheetStyles.dateCell, sheetStyles.tableHeadText]}
-            >
-              Date
-            </Text>
-            <Text
-              style={[sheetStyles.tableCell, sheetStyles.stageCell, sheetStyles.tableHeadText]}
-            >
-              Stage
-            </Text>
-            <Text
-              style={[sheetStyles.tableCell, sheetStyles.workCell, sheetStyles.tableHeadText]}
-            >
-              Work
-            </Text>
-            <Text
-              style={[
-                sheetStyles.tableCell,
-                sheetStyles.percentCell,
-                sheetStyles.tableHeadText,
-              ]}
-            >
-              Progress
-            </Text>
-          </View>
-          {entries.map((entry, index) => (
-            <View
-              key={entry.id}
-              style={[
-                sheetStyles.tableRow,
-                index % 2 === 1 && sheetStyles.tableRowAlternate,
-              ]}
-            >
-              <Text style={[sheetStyles.tableCell, sheetStyles.dateCell]}>
-                {new Date(entry.createdAt).toLocaleDateString()}
-              </Text>
-              <Text style={[sheetStyles.tableCell, sheetStyles.stageCell]}>
-                {entry.stage}
-              </Text>
-              <Text
-                style={[sheetStyles.tableCell, sheetStyles.workCell]}
-                numberOfLines={2}
-              >
-                {entry.workDescription}
-              </Text>
-              <Text style={[sheetStyles.tableCell, sheetStyles.percentCell]}>
-                {entry.progress}%
-              </Text>
-            </View>
-          ))}
-        </View>
-      </ScrollView>
+      <DataTable
+        title="Progress history"
+        columns={columns}
+        rows={entries}
+        rowKey={(entry) => entry.id}
+      />
     </View>
   );
 }
-
-

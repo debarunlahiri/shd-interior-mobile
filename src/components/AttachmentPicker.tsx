@@ -1,13 +1,15 @@
 import { FontAwesome6 } from "@expo/vector-icons";
 import * as DocumentPicker from "expo-document-picker";
 import * as ImagePicker from "expo-image-picker";
-import { Alert, Pressable, StyleSheet, Text, View } from "react-native";
+import { Pressable, StyleSheet, Text, View } from "react-native";
+import { useAppDialog } from "./AppDialog";
 import { colors } from "../theme";
+import { useTranslation } from "../localization";
 
 export function AttachmentPicker({
   value,
   onChange,
-  label = "Add photo or document",
+  label,
   mediaOnly = false,
   mediaType,
 }: {
@@ -17,12 +19,15 @@ export function AttachmentPicker({
   mediaOnly?: boolean;
   mediaType?: "images" | "videos";
 }) {
+  const { t } = useTranslation();
+  const displayLabel = label ?? t("attachment.add");
+  const dialog = useAppDialog();
   const choosePhoto = async () => {
     const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
     if (!permission.granted) {
-      Alert.alert(
-        "Photo permission needed",
-        "Allow photo access to attach site evidence.",
+      dialog.show(
+        t("attachment.permissionTitle"),
+        t("attachment.permissionMessage"),
       );
       return;
     }
@@ -31,7 +36,7 @@ export function AttachmentPicker({
       quality: 0.8,
     });
     if (!result.canceled)
-      onChange(result.assets[0].fileName ?? "Site media attached");
+      onChange(result.assets[0].fileName ?? t("attachment.siteMedia"));
   };
   const chooseDocument = async () => {
     const result = await DocumentPicker.getDocumentAsync({
@@ -45,10 +50,10 @@ export function AttachmentPicker({
       choosePhoto();
       return;
     }
-    Alert.alert("Add attachment", "Choose an attachment source", [
-      { text: "Photo or video", onPress: choosePhoto },
-      { text: "Document", onPress: chooseDocument },
-      { text: "Cancel", style: "cancel" },
+    dialog.show(t("attachment.dialogTitle"), t("attachment.dialogMessage"), [
+      { text: t("attachment.photoVideo"), onPress: choosePhoto },
+      { text: t("attachment.document"), onPress: chooseDocument },
+      { text: t("common.cancel"), style: "cancel" },
     ]);
   };
   return (
@@ -60,18 +65,18 @@ export function AttachmentPicker({
       />
       <View style={styles.info}>
         <Text style={styles.title} numberOfLines={1}>
-          {value ?? label}
+          {value ?? displayLabel}
         </Text>
         <Text style={styles.copy}>
           {value
-            ? "Tap to replace attachment"
+            ? t("attachment.replace")
             : mediaOnly
               ? mediaType === "images"
-                ? "JPG or PNG"
+                ? t("attachment.images")
                 : mediaType === "videos"
-                  ? "MP4 or compatible video"
-                  : "JPG, PNG or MP4"
-              : "JPG, PNG, MP4 or PDF"}
+                  ? t("attachment.videos")
+                  : t("attachment.media")
+              : t("attachment.all")}
         </Text>
       </View>
       <FontAwesome6

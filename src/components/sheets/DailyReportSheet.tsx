@@ -1,25 +1,17 @@
 import { FontAwesome6 } from "@expo/vector-icons";
 import { useState } from "react";
-import {
-  Alert,
-  Pressable,
-  ScrollView,
-  Text,
-  TextInput,
-  View,
-} from "react-native";
+import { Pressable, ScrollView, Text, TextInput, View } from "react-native";
 import { Task } from "../../data";
-import {
-  DailyReport,
-  DailyReportInput,
-} from "../../hooks/useDailyReports";
+import { DailyReport, DailyReportInput } from "../../hooks/useDailyReports";
 import { colors } from "../../theme";
+import { formatDate, toIsoDate } from "../../utils/date";
 import { AttachmentPicker } from "../AttachmentPicker";
+import { useAppDialog } from "../AppDialog";
 import { DropdownField } from "../DropdownField";
 import { PrimaryButton, StatusPill, Surface } from "../ui";
 import { sheetStyles } from "./styles";
 
-export function DailyReportForm({
+export function DailyReportSheet({
   tasks,
   reports,
   onSubmit,
@@ -28,7 +20,136 @@ export function DailyReportForm({
   reports: DailyReport[];
   onSubmit: (input: DailyReportInput) => void;
 }) {
-  const today = new Date().toISOString().slice(0, 10);
+  const dialog = useAppDialog();
+  const [screen, setScreen] = useState<"list" | "add">("list");
+  const [siteFilter, setSiteFilter] = useState("All sites");
+  const [dateFilter, setDateFilter] = useState("All dates");
+
+  if (screen === "add") {
+    return (
+      <DailyReportForm
+        tasks={tasks}
+        onCancel={() => setScreen("list")}
+        onSubmit={(input) => {
+          onSubmit(input);
+          setScreen("list");
+          dialog.show(
+            "Report added",
+            "The daily site report is now available in the report list.",
+          );
+        }}
+      />
+    );
+  }
+
+  const dateOptions = [
+    { label: "All dates", value: "All dates" },
+    ...Array.from(new Set(reports.map((report) => report.date))).map(
+      (date) => ({
+        label: formatDate(date),
+        value: date,
+      }),
+    ),
+  ];
+  const siteOptions = [
+    "All sites",
+    ...Array.from(new Set(reports.map((report) => report.site))),
+  ];
+  const filteredReports = reports.filter(
+    (report) =>
+      (siteFilter === "All sites" || report.site === siteFilter) &&
+      (dateFilter === "All dates" || report.date === dateFilter),
+  );
+
+  return (
+    <ScrollView contentContainerStyle={sheetStyles.form}>
+      <PrimaryButton
+        label="Add daily report"
+        icon="plus"
+        onPress={() => setScreen("add")}
+      />
+      <View style={sheetStyles.reportHistory}>
+        <View style={sheetStyles.reportListHeading}>
+          <View>
+            <Text style={sheetStyles.fieldLabel}>DAILY SITE REPORTS</Text>
+            <Text style={sheetStyles.reportListCount}>
+              {reports.length} {reports.length === 1 ? "report" : "reports"}
+            </Text>
+          </View>
+        </View>
+        <View style={sheetStyles.reportFilters}>
+          <View style={sheetStyles.reportFilter}>
+            <DropdownField
+              value={siteFilter}
+              placeholder="Filter by site"
+              options={siteOptions}
+              onChange={setSiteFilter}
+            />
+          </View>
+          <View style={sheetStyles.reportFilter}>
+            <DropdownField
+              value={dateFilter}
+              placeholder="Filter by date"
+              options={dateOptions}
+              onChange={setDateFilter}
+            />
+          </View>
+        </View>
+        {filteredReports.length ? (
+          filteredReports.map((report) => (
+            <Surface key={report.id} style={sheetStyles.reportCard}>
+              <View style={sheetStyles.reportCardHeader}>
+                <View style={sheetStyles.flexNoMargin}>
+                  <Text style={sheetStyles.itemTitle}>
+                    {formatDate(report.date)}
+                  </Text>
+                  <Text style={sheetStyles.itemMeta}>
+                    {report.project} · {report.site}
+                  </Text>
+                </View>
+                <StatusPill label={`${report.workforce} workers`} />
+              </View>
+              <Text style={sheetStyles.reportWork}>{report.workCompleted}</Text>
+              <Text style={sheetStyles.reportMeta}>
+                {report.completedTaskIds.length} completed ·{" "}
+                {report.pendingTaskIds.length} pending
+              </Text>
+              <Text style={sheetStyles.reportMeta}>
+                Evidence:{" "}
+                {[report.photoName, report.videoName]
+                  .filter(Boolean)
+                  .join(", ") || "None"}
+              </Text>
+            </Surface>
+          ))
+        ) : (
+          <View style={sheetStyles.emptyHistory}>
+            <FontAwesome6
+              name="file-circle-xmark"
+              size={18}
+              color={colors.inkMuted}
+            />
+            <Text style={sheetStyles.emptyHistoryText}>
+              No reports match these filters.
+            </Text>
+          </View>
+        )}
+      </View>
+    </ScrollView>
+  );
+}
+
+function DailyReportForm({
+  tasks,
+  onCancel,
+  onSubmit,
+}: {
+  tasks: Task[];
+  onCancel: () => void;
+  onSubmit: (input: DailyReportInput) => void;
+}) {
+  const dialog = useAppDialog();
+  const today = toIsoDate(new Date());
   const [workCompleted, setWorkCompleted] = useState("");
   const [workforce, setWorkforce] = useState("");
   const [completedTaskIds, setCompletedTaskIds] = useState<string[]>([]);
@@ -40,8 +161,6 @@ export function DailyReportForm({
   const [remarks, setRemarks] = useState("");
   const [photoName, setPhotoName] = useState<string | null>(null);
   const [videoName, setVideoName] = useState<string | null>(null);
-  const [siteFilter, setSiteFilter] = useState("All sites");
-  const [dateFilter, setDateFilter] = useState("All dates");
 
   const toggleTask = (
     taskId: string,
@@ -62,18 +181,18 @@ export function DailyReportForm({
       !Number.isInteger(workforceCount) ||
       workforceCount < 0
     ) {
-      Alert.alert(
+      dialog.show(
         "Report details required",
         "Add today's completed work and a valid workforce count.",
       );
       return;
     }
     if (!remarks.trim()) {
-      Alert.alert("Remarks required", "Add the daily supervisor remarks.");
+      dialog.show("Remarks required", "Add the daily supervisor remarks.");
       return;
     }
     if (!photoName && !videoName) {
-      Alert.alert(
+      dialog.show(
         "Evidence required",
         "Attach at least one progress photo or video.",
       );
@@ -98,25 +217,26 @@ export function DailyReportForm({
     });
   };
 
-  const dateOptions = [
-    "All dates",
-    ...Array.from(new Set(reports.map((report) => report.date))),
-  ];
-  const filteredReports = reports.filter(
-    (report) =>
-      (siteFilter === "All sites" || report.site === siteFilter) &&
-      (dateFilter === "All dates" || report.date === dateFilter),
-  );
-
   return (
     <ScrollView
       contentContainerStyle={sheetStyles.form}
       keyboardShouldPersistTaps="handled"
     >
+      <Pressable
+        style={sheetStyles.backAction}
+        onPress={onCancel}
+        accessibilityRole="button"
+        accessibilityLabel="Back to daily report list"
+      >
+        <FontAwesome6 name="arrow-left" size={14} color={colors.primary} />
+        <Text style={sheetStyles.backActionText}>Back to reports</Text>
+      </Pressable>
       <View style={sheetStyles.context}>
         <FontAwesome6 name="calendar-day" size={17} color={colors.primary} />
         <View>
-          <Text style={sheetStyles.contextLabel}>DAILY REPORT · {today}</Text>
+          <Text style={sheetStyles.contextLabel}>
+            DAILY REPORT · {formatDate(today)}
+          </Text>
           <Text style={sheetStyles.contextValue}>
             Palm Grove Residence · Villa 18 · Arjun Kumar
           </Text>
@@ -140,9 +260,7 @@ export function DailyReportForm({
         label="TASKS COMPLETED"
         tasks={tasks.filter((task) => task.status === "Completed")}
         selected={completedTaskIds}
-        onToggle={(id) =>
-          toggleTask(id, completedTaskIds, setCompletedTaskIds)
-        }
+        onToggle={(id) => toggleTask(id, completedTaskIds, setCompletedTaskIds)}
       />
       <TaskSelection
         label="TASKS PENDING"
@@ -210,64 +328,6 @@ export function DailyReportForm({
         icon="circle-check"
         onPress={submit}
       />
-      <View style={sheetStyles.reportHistory}>
-        <Text style={sheetStyles.fieldLabel}>REPORT HISTORY</Text>
-        <View style={sheetStyles.reportFilters}>
-          <View style={sheetStyles.reportFilter}>
-            <DropdownField
-              value={siteFilter}
-              placeholder="Filter by site"
-              options={["All sites", "Villa 18"]}
-              onChange={setSiteFilter}
-            />
-          </View>
-          <View style={sheetStyles.reportFilter}>
-            <DropdownField
-              value={dateFilter}
-              placeholder="Filter by date"
-              options={dateOptions}
-              onChange={setDateFilter}
-            />
-          </View>
-        </View>
-        {filteredReports.length ? (
-          filteredReports.map((report) => (
-            <Surface key={report.id} style={sheetStyles.reportCard}>
-              <View style={sheetStyles.reportCardHeader}>
-                <View>
-                  <Text style={sheetStyles.itemTitle}>{report.date}</Text>
-                  <Text style={sheetStyles.itemMeta}>
-                    {report.project} · {report.site}
-                  </Text>
-                </View>
-                <StatusPill label={`${report.workforce} workers`} />
-              </View>
-              <Text style={sheetStyles.reportWork}>{report.workCompleted}</Text>
-              <Text style={sheetStyles.reportMeta}>
-                {report.completedTaskIds.length} completed ·{" "}
-                {report.pendingTaskIds.length} pending
-              </Text>
-              <Text style={sheetStyles.reportMeta}>
-                Evidence:{" "}
-                {[report.photoName, report.videoName]
-                  .filter(Boolean)
-                  .join(", ") || "None"}
-              </Text>
-            </Surface>
-          ))
-        ) : (
-          <View style={sheetStyles.emptyHistory}>
-            <FontAwesome6
-              name="file-circle-xmark"
-              size={18}
-              color={colors.inkMuted}
-            />
-            <Text style={sheetStyles.emptyHistoryText}>
-              No reports match these filters.
-            </Text>
-          </View>
-        )}
-      </View>
     </ScrollView>
   );
 }
@@ -318,7 +378,10 @@ function TaskSelection({
             <Pressable
               key={task.id}
               onPress={() => onToggle(task.id)}
-              style={[sheetStyles.taskChoice, active && sheetStyles.taskChoiceActive]}
+              style={[
+                sheetStyles.taskChoice,
+                active && sheetStyles.taskChoiceActive,
+              ]}
               accessibilityRole="checkbox"
               accessibilityState={{ checked: active }}
             >
@@ -340,5 +403,3 @@ function TaskSelection({
     </View>
   );
 }
-
-

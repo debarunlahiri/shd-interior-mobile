@@ -118,13 +118,6 @@ export const tasks: Task[] = [
   },
 ];
 
-export const inventory = [
-  { name: "Gypsum board", quantity: "24 sheets", state: "Good", level: 72 },
-  { name: "White cement", quantity: "8 bags", state: "Low stock", level: 22 },
-  { name: "Electrical wire", quantity: "340 m", state: "Good", level: 64 },
-  { name: "Wall primer", quantity: "42 L", state: "Good", level: 48 },
-];
-
 export const attendance = [
   { name: "Ravi Kumar", trade: "Carpenter", status: "Present" },
   { name: "Imran Ali", trade: "Electrician", status: "Present" },

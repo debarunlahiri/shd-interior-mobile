@@ -1,16 +1,18 @@
 import { useState } from "react";
 import { SiteProgressEntry, Task } from "../data";
-import {
-  DailyReport,
-  DailyReportInput,
-} from "../hooks/useDailyReports";
+import { ManagedMaterial, ManagedUnit } from "../hooks/useAdminMasters";
+import { DailyReport, DailyReportInput } from "../hooks/useDailyReports";
 import {
   MaterialRequest,
   MaterialRequestInput,
 } from "../hooks/useMaterialRequests";
 import { SiteProgressInput } from "../hooks/useSiteProgress";
+import {
+  OperationalRecord,
+  OperationalRecordInput,
+} from "../hooks/useOperationalRecords";
 import { SheetName } from "../types/navigation";
-import { DailyReportForm } from "./sheets/DailyReportSheet";
+import { DailyReportSheet } from "./sheets/DailyReportSheet";
 import { MaterialRequestSheet } from "./sheets/MaterialRequestSheet";
 import { SiteProgress } from "./sheets/SiteProgressSheet";
 import { SheetLayout } from "./sheets/SheetLayout";
@@ -38,6 +40,10 @@ export function ActionSheet({
   materialRequests,
   onAddMaterialRequest,
   onConfirmMaterialReceived,
+  managedMaterials,
+  managedUnits,
+  operationalRecords,
+  onAddOperationalRecord,
 }: {
   kind: SheetName;
   onClose: () => void;
@@ -49,6 +55,10 @@ export function ActionSheet({
   materialRequests: MaterialRequest[];
   onAddMaterialRequest: (input: MaterialRequestInput) => void;
   onConfirmMaterialReceived: (requestId: string) => void;
+  managedMaterials: ManagedMaterial[];
+  managedUnits: ManagedUnit[];
+  operationalRecords: OperationalRecord[];
+  onAddOperationalRecord: (input: OperationalRecordInput) => void;
 }) {
   const [submitted, setSubmitted] = useState(false);
   const config = getSheetConfig(kind);
@@ -85,23 +95,26 @@ export function ActionSheet({
           }}
         />
       ) : kind === "report" ? (
-        <DailyReportForm
+        <DailyReportSheet
           tasks={tasks}
           reports={dailyReports}
-          onSubmit={(input) => {
-            onAddDailyReport(input);
-            setSubmitted(true);
-          }}
+          onSubmit={onAddDailyReport}
         />
       ) : kind === "material" ? (
         <MaterialRequestSheet
           requests={materialRequests}
           onSubmit={onAddMaterialRequest}
           onConfirmReceived={onConfirmMaterialReceived}
+          materials={managedMaterials}
+          units={managedUnits}
         />
-      ) : (
-        <SimpleForm kind={kind} onSubmit={() => setSubmitted(true)} />
-      )}
+      ) : kind === "expense" || kind === "attendance" || kind === "issue" ? (
+        <SimpleForm
+          kind={kind}
+          records={operationalRecords}
+          onSubmit={onAddOperationalRecord}
+        />
+      ) : null}
     </SheetLayout>
   );
 }

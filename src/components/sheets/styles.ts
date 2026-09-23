@@ -8,7 +8,7 @@ export const sheetStyles = StyleSheet.create({
     backgroundColor: "rgba(12,24,20,.42)",
   },
   sheet: {
-    maxHeight: "91%",
+    height: "91%",
     backgroundColor: colors.background,
     borderTopLeftRadius: 28,
     borderTopRightRadius: 28,
@@ -54,6 +54,12 @@ export const sheetStyles = StyleSheet.create({
   taskChoiceTitle: { color: colors.ink, fontSize: 11, fontWeight: "700" },
   taskChoiceMeta: { color: colors.inkMuted, fontSize: 9, marginTop: 3 },
   reportHistory: { gap: 10, marginTop: 8 },
+  reportListHeading: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+  },
+  reportListCount: { color: colors.inkMuted, fontSize: 10, marginTop: 4 },
   reportFilters: { flexDirection: "row", gap: 8 },
   reportFilter: { flex: 1 },
   reportCard: { padding: 14, gap: 8 },

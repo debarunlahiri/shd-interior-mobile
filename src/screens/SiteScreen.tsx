@@ -1,7 +1,14 @@
 import { FontAwesome6 } from "@expo/vector-icons";
 import { useState } from "react";
 import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
-import { attendance, inventory } from "../data";
+import { attendance } from "../data";
+import { SiteInventoryPanel } from "../components/SiteInventoryPanel";
+import { ManagedMaterial, ManagedUnit } from "../hooks/useAdminMasters";
+import {
+  InventoryBalance,
+  InventoryTransaction,
+  InventoryTransactionInput,
+} from "../hooks/useSiteInventory";
 import { colors, shadow } from "../theme";
 import { SheetName } from "../types/navigation";
 import {
@@ -16,8 +23,20 @@ import {
 type Section = "Overview" | "Inventory" | "Attendance";
 export function SiteScreen({
   onSheet,
+  materials,
+  units,
+  balances,
+  transactions,
+  taskOptions,
+  onAddInventoryTransaction,
 }: {
   onSheet: (sheet: SheetName) => void;
+  materials: ManagedMaterial[];
+  units: ManagedUnit[];
+  balances: InventoryBalance[];
+  transactions: InventoryTransaction[];
+  taskOptions: { label: string; value: string }[];
+  onAddInventoryTransaction: (input: InventoryTransactionInput) => void;
 }) {
   const [section, setSection] = useState<Section>("Overview");
   return (
@@ -54,7 +73,15 @@ export function SiteScreen({
         {section === "Overview" ? (
           <Overview onSheet={onSheet} />
         ) : section === "Inventory" ? (
-          <Inventory onSheet={onSheet} />
+          <SiteInventoryPanel
+            materials={materials}
+            units={units}
+            balances={balances}
+            transactions={transactions}
+            taskOptions={taskOptions}
+            onAddTransaction={onAddInventoryTransaction}
+            onRequestMaterial={() => onSheet("material")}
+          />
         ) : (
           <Attendance onSheet={onSheet} />
         )}
@@ -108,49 +135,6 @@ function Overview({ onSheet }: { onSheet: (sheet: SheetName) => void }) {
           </Text>
           <Text style={styles.updateMeta}>Today, 10:24 AM · Arjun Kumar</Text>
         </View>
-      </Surface>
-    </>
-  );
-}
-function Inventory({ onSheet }: { onSheet: (sheet: SheetName) => void }) {
-  return (
-    <>
-      <View style={styles.inventoryHeader}>
-        <View>
-          <Text style={styles.inventoryCount}>4</Text>
-          <Text style={styles.subtitle}>Tracked materials</Text>
-        </View>
-        <PrimaryButton
-          label="Request"
-          icon="plus"
-          onPress={() => onSheet("material")}
-        />
-      </View>
-      <Surface style={styles.listCard}>
-        {inventory.map((item, index) => (
-          <View key={item.name}>
-            {index ? <View style={styles.divider} /> : null}
-            <View style={styles.inventoryRow}>
-              <View style={styles.rowIcon}>
-                <FontAwesome6 name="cubes" size={17} color={colors.primary} />
-              </View>
-              <View style={styles.rowInfo}>
-                <View style={styles.rowTop}>
-                  <Text style={styles.rowTitle}>{item.name}</Text>
-                  <StatusPill label={item.state} />
-                </View>
-                <View style={styles.stockMeta}>
-                  <Text style={styles.rowMeta}>{item.quantity} available</Text>
-                  <Text style={styles.rowMeta}>{item.level}%</Text>
-                </View>
-                <ProgressBar
-                  value={item.level}
-                  color={item.level < 30 ? colors.danger : colors.success}
-                />
-              </View>
-            </View>
-          </View>
-        ))}
       </Surface>
     </>
   );
@@ -323,16 +307,8 @@ const styles = StyleSheet.create({
     marginTop: 9,
   },
   updateMeta: { color: colors.inkMuted, fontSize: 9, marginTop: 10 },
-  inventoryHeader: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    marginBottom: 18,
-  },
-  inventoryCount: { color: colors.ink, fontSize: 25, fontWeight: "800" },
   listCard: { paddingHorizontal: 15 },
   divider: { height: 1, backgroundColor: colors.border },
-  inventoryRow: { flexDirection: "row", gap: 12, paddingVertical: 15 },
   rowIcon: {
     width: 38,
     height: 38,
@@ -349,12 +325,6 @@ const styles = StyleSheet.create({
   },
   rowTitle: { color: colors.ink, fontSize: 13, fontWeight: "700" },
   rowMeta: { color: colors.inkMuted, fontSize: 10, marginTop: 3 },
-  stockMeta: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    marginTop: 9,
-    marginBottom: 7,
-  },
   attendanceHero: {
     backgroundColor: colors.primary,
     borderRadius: 20,

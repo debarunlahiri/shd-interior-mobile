@@ -1,23 +1,26 @@
 import { FontAwesome6 } from "@expo/vector-icons";
 import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
-import { DropdownField } from "../components/DropdownField";
 import { IconButton, SectionHeader, Surface } from "../components/ui";
+import { useAppDialog } from "../components/AppDialog";
 import { colors } from "../theme";
 import { FontAwesomeIcon } from "../types/icons";
 import { SheetName, TabName } from "../types/navigation";
 import { UserRole } from "../types/roles";
+import { useTranslation } from "../localization";
 
 export function MoreScreen({
   onSheet,
   onTab,
   role,
-  onRoleChange,
+  onSignOut,
 }: {
   onSheet: (sheet: SheetName) => void;
   onTab: (tab: TabName) => void;
   role: UserRole;
-  onRoleChange: (role: UserRole) => void;
+  onSignOut: () => Promise<void>;
 }) {
+  const { t } = useTranslation();
+  const dialog = useAppDialog();
   const supervisorMenu: {
     label: string;
     copy: string;
@@ -25,102 +28,78 @@ export function MoreScreen({
     action: () => void;
   }[] = [
     {
-      label: "Daily reports",
-      copy: "Submit and view site reports",
+      label: t("workspace.dailyReports"),
+      copy: t("workspace.dailyReportsCopy"),
       icon: "file-lines",
       action: () => onSheet("report"),
     },
     {
-      label: "Materials",
-      copy: "Requests and consumption",
-      icon: "cubes",
-      action: () => onTab("Site"),
-    },
-    {
-      label: "Expenses",
-      copy: "Site expenses and approvals",
+      label: t("workspace.expenses"),
+      copy: t("workspace.expensesCopy"),
       icon: "receipt",
       action: () => onSheet("expense"),
     },
     {
-      label: "Cash in hand",
-      copy: "Available balance ₹37,000",
+      label: t("workspace.cash"),
+      copy: t("workspace.cashCopy"),
       icon: "wallet",
       action: () => onSheet("cash"),
     },
     {
-      label: "Attendance",
-      copy: "Workers and site visits",
+      label: t("workspace.attendance"),
+      copy: t("workspace.attendanceCopy"),
       icon: "people-group",
       action: () => onSheet("attendance"),
     },
     {
-      label: "Issues & support",
-      copy: "Report and track site issues",
+      label: t("workspace.issues"),
+      copy: t("workspace.issuesCopy"),
       icon: "triangle-exclamation",
       action: () => onSheet("issue"),
     },
     {
-      label: "Messages",
-      copy: "2 unread instructions",
+      label: t("workspace.messages"),
+      copy: t("workspace.supervisorMessagesCopy"),
       icon: "comments",
       action: () => onSheet("messages"),
     },
     {
-      label: "Documents",
-      copy: "Drawings, bills and files",
+      label: t("workspace.documents"),
+      copy: t("workspace.supervisorDocumentsCopy"),
       icon: "folder-open",
       action: () => onSheet("documents"),
     },
   ];
   const adminMenu: typeof supervisorMenu = [
     {
-      label: "Projects & sites",
-      copy: "Project and site management",
-      icon: "building",
-      action: () => onTab("Projects"),
+      label: t("workspace.masterData"),
+      copy: t("workspace.masterDataCopy"),
+      icon: "sliders",
+      action: () => onTab("AdminSetup"),
     },
     {
-      label: "Approvals",
-      copy: "Tasks, materials and expenses",
-      icon: "clipboard-check",
-      action: () => onTab("Approvals"),
-    },
-    {
-      label: "Messages",
-      copy: "Supervisor and vendor communication",
+      label: t("workspace.messages"),
+      copy: t("workspace.adminMessagesCopy"),
       icon: "comments",
       action: () => onSheet("messages"),
     },
     {
-      label: "Documents",
-      copy: "Project and company documents",
+      label: t("workspace.documents"),
+      copy: t("workspace.adminDocumentsCopy"),
       icon: "folder-open",
       action: () => onSheet("documents"),
     },
   ];
   const vendorMenu: typeof supervisorMenu = [
     {
-      label: "Purchase orders",
-      copy: "Open and completed orders",
-      icon: "file-invoice",
-      action: () => onTab("Orders"),
-    },
-    {
-      label: "Deliveries",
-      copy: "Dispatch and delivery status",
-      icon: "truck",
-      action: () => onTab("Deliveries"),
-    },
-    {
-      label: "Messages",
-      copy: "Communication with company Admin",
+      label: t("workspace.messages"),
+      copy: t("workspace.vendorMessagesCopy"),
       icon: "comments",
       action: () => onSheet("messages"),
     },
     {
-      label: "Documents",
-      copy: "Invoices, challans and files",
+      label: t("workspace.documents"),
+      copy: t("workspace.vendorDocumentsCopy"),
       icon: "folder-open",
       action: () => onSheet("documents"),
     },
@@ -157,8 +136,10 @@ export function MoreScreen({
     >
       <View style={styles.header}>
         <View>
-          <Text style={styles.title}>Workspace</Text>
-          <Text style={styles.subtitle}>{role} tools and account</Text>
+          <Text style={styles.title}>{t("workspace.title")}</Text>
+          <Text style={styles.subtitle}>
+            {t("workspace.toolsAccount", { role })}
+          </Text>
         </View>
         <IconButton icon="gear" />
       </View>
@@ -172,25 +153,13 @@ export function MoreScreen({
         </View>
         <FontAwesome6 name="chevron-right" size={14} color={colors.inkMuted} />
       </Surface>
-      <View style={styles.roleSelector}>
-        <Text style={styles.roleLabel}>ACTIVE ROLE</Text>
-        <DropdownField
-          value={role}
-          placeholder="Select role"
-          options={["Supervisor", "Admin", "Vendor"]}
-          onChange={(value) => onRoleChange(value as UserRole)}
-        />
-        <Text style={styles.clientNote}>
-          Client access will be added later as a read-only role.
-        </Text>
-      </View>
       <SectionHeader
         title={
           role === "Supervisor"
-            ? "Site operations"
+            ? t("workspace.siteOperations")
             : role === "Admin"
-              ? "Management"
-              : "Vendor operations"
+              ? t("workspace.management")
+              : t("workspace.vendorOperations")
         }
       />
       <Surface style={styles.menu}>
@@ -223,7 +192,31 @@ export function MoreScreen({
           </View>
         ))}
       </Surface>
-      <Text style={styles.version}>SHD Interior · {role} app v1.0.0</Text>
+      <Pressable
+        accessibilityRole="button"
+        onPress={() =>
+          dialog.show(t("common.signOutQuestion"), t("common.signOutMessage"), [
+            { text: t("common.cancel"), style: "cancel" },
+            {
+              text: t("common.signOut"),
+              style: "destructive",
+              onPress: () => void onSignOut(),
+            },
+          ])
+        }
+        style={({ pressed }) => [
+          styles.signOutButton,
+          pressed && styles.signOutButtonPressed,
+        ]}
+      >
+        <FontAwesome6
+          name="right-from-bracket"
+          size={15}
+          color={colors.danger}
+        />
+        <Text style={styles.signOutText}>{t("common.signOut")}</Text>
+      </Pressable>
+      <Text style={styles.version}>{t("workspace.version", { role })}</Text>
     </ScrollView>
   );
 }
@@ -263,16 +256,21 @@ const styles = StyleSheet.create({
   profileInfo: { flex: 1, marginLeft: 13 },
   profileName: { color: colors.ink, fontSize: 15, fontWeight: "700" },
   profileRole: { color: colors.inkMuted, fontSize: 11, marginTop: 4 },
-  roleSelector: { marginBottom: 24 },
-  roleLabel: {
-    color: colors.inkMuted,
-    fontSize: 9,
-    fontWeight: "800",
-    letterSpacing: 0.8,
-    marginBottom: 7,
-  },
-  clientNote: { color: colors.inkMuted, fontSize: 9, marginTop: 7 },
   menu: { paddingHorizontal: 15 },
+  signOutButton: {
+    minHeight: 48,
+    marginTop: 18,
+    borderRadius: 14,
+    borderWidth: 1,
+    borderColor: colors.dangerSoft,
+    backgroundColor: colors.surface,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 8,
+  },
+  signOutButtonPressed: { opacity: 0.7 },
+  signOutText: { color: colors.danger, fontSize: 12, fontWeight: "700" },
   divider: { height: 1, backgroundColor: colors.border },
   row: { flexDirection: "row", alignItems: "center", paddingVertical: 13 },
   icon: {

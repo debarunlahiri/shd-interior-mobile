@@ -85,13 +85,24 @@ export function HomeScreen({
         </View>
       </LinearGradient>
       <View style={styles.stats}>
-        <Stat icon="list-check" value="3" label="Today's tasks" />
-        <Stat icon="people-group" value="26" label="Workforce" />
+        <Stat
+          icon="list-check"
+          value="3"
+          label="Today's tasks"
+          onPress={() => onTab("Tasks")}
+        />
+        <Stat
+          icon="people-group"
+          value="26"
+          label="Workforce"
+          onPress={() => onSheet("attendance")}
+        />
         <Stat
           icon="triangle-exclamation"
           value="2"
           label="Open issues"
           danger
+          onPress={() => onSheet("issue")}
         />
       </View>
       <SectionHeader title="Quick actions" />
@@ -160,21 +171,33 @@ function Stat({
   value,
   label,
   danger,
+  onPress,
 }: {
   icon: FontAwesomeIcon;
   value: string;
   label: string;
   danger?: boolean;
+  onPress: () => void;
 }) {
   const color = danger ? colors.danger : colors.primary;
   return (
-    <View style={styles.stat}>
+    <Pressable
+      accessibilityRole="button"
+      accessibilityLabel={`${label}: ${value}`}
+      onPress={onPress}
+      style={({ pressed }) => [styles.stat, pressed && styles.statPressed]}
+    >
       <View style={[styles.statIcon, { backgroundColor: `${color}18` }]}>
         <FontAwesome6 name={icon} size={17} color={color} />
       </View>
       <Text style={styles.statValue}>{value}</Text>
-      <Text style={styles.statLabel}>{label}</Text>
-    </View>
+      <View style={styles.statFooter}>
+        <Text style={styles.statLabel} numberOfLines={1}>
+          {label}
+        </Text>
+        <FontAwesome6 name="chevron-right" size={8} color={colors.inkMuted} />
+      </View>
+    </Pressable>
   );
 }
 function Quick({
@@ -316,6 +339,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: colors.border,
   },
+  statPressed: { opacity: 0.72, transform: [{ scale: 0.98 }] },
   statIcon: {
     width: 32,
     height: 32,
@@ -325,7 +349,14 @@ const styles = StyleSheet.create({
     marginBottom: 10,
   },
   statValue: { color: colors.ink, fontSize: 20, fontWeight: "800" },
-  statLabel: { color: colors.inkMuted, fontSize: 10, marginTop: 2 },
+  statFooter: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    gap: 4,
+    marginTop: 2,
+  },
+  statLabel: { flex: 1, color: colors.inkMuted, fontSize: 10 },
   quickGrid: {
     flexDirection: "row",
     flexWrap: "wrap",

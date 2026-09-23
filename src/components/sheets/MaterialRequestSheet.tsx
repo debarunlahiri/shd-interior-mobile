@@ -1,19 +1,16 @@
 import { FontAwesome6 } from "@expo/vector-icons";
 import { useState } from "react";
-import {
-  Alert,
-  Pressable,
-  ScrollView,
-  Text,
-  TextInput,
-  View,
-} from "react-native";
+import { Pressable, ScrollView, Text, TextInput, View } from "react-native";
 import {
   MaterialRequest,
   MaterialRequestInput,
   MaterialRequestStatus,
 } from "../../hooks/useMaterialRequests";
+import { ManagedMaterial, ManagedUnit } from "../../hooks/useAdminMasters";
 import { colors } from "../../theme";
+import { formatDate, formatDateTime, toIsoDate } from "../../utils/date";
+import { DatePickerField } from "../DatePickerField";
+import { useAppDialog } from "../AppDialog";
 import { DropdownField } from "../DropdownField";
 import { PrimaryButton, StatusPill, Surface } from "../ui";
 import { sheetStyles } from "./styles";
@@ -35,11 +32,16 @@ export function MaterialRequestSheet({
   requests,
   onSubmit,
   onConfirmReceived,
+  materials,
+  units,
 }: {
   requests: MaterialRequest[];
   onSubmit: (input: MaterialRequestInput) => void;
   onConfirmReceived: (requestId: string) => void;
+  materials: ManagedMaterial[];
+  units: ManagedUnit[];
 }) {
+  const dialog = useAppDialog();
   const [view, setView] = useState<MaterialView>("New request");
   const [material, setMaterial] = useState("");
   const [quantity, setQuantity] = useState("");
@@ -68,24 +70,21 @@ export function MaterialRequestSheet({
       !Number.isFinite(quantityValue) ||
       quantityValue <= 0
     ) {
-      Alert.alert(
+      dialog.show(
         "Material details required",
         "Select a material and unit, then enter a valid quantity.",
       );
       return;
     }
-    if (
-      !/^\d{4}-\d{2}-\d{2}$/.test(requiredDate) ||
-      Number.isNaN(Date.parse(`${requiredDate}T00:00:00`))
-    ) {
-      Alert.alert(
+    if (!requiredDate) {
+      dialog.show(
         "Required date needed",
-        "Enter the required date in YYYY-MM-DD format.",
+        "Select the date when this material is required.",
       );
       return;
     }
     if (!purpose.trim() || !remarks.trim()) {
-      Alert.alert(
+      dialog.show(
         "Request details required",
         "Add the purpose and Supervisor remarks.",
       );
@@ -106,7 +105,7 @@ export function MaterialRequestSheet({
     setPurpose("");
     setRemarks("");
     setView("Requests");
-    Alert.alert("Request submitted", "The material request was saved locally.");
+    dialog.show("Request submitted", "The material request was saved locally.");
   };
 
   return (
@@ -154,14 +153,17 @@ export function MaterialRequestSheet({
             <DropdownField
               value={material}
               placeholder="Select material"
-              options={[
-                "Gypsum board",
-                "White cement",
-                "Electrical wire",
-                "Wall primer",
-                "Other",
-              ]}
-              onChange={setMaterial}
+              options={materials.map((item) => item.name)}
+              onChange={(value) => {
+                setMaterial(value);
+                const selectedMaterial = materials.find(
+                  (item) => item.name === value,
+                );
+                const defaultUnit = units.find(
+                  (item) => item.id === selectedMaterial?.unitId,
+                );
+                setUnit(defaultUnit?.symbol ?? "");
+              }}
             />
           </View>
           <View style={sheetStyles.splitFields}>
@@ -181,19 +183,20 @@ export function MaterialRequestSheet({
               <DropdownField
                 value={unit}
                 placeholder="Select unit"
-                options={["Bags", "Sheets", "Kilograms", "Litres", "Metres", "Pieces"]}
+                options={units.map((item) => ({
+                  label: `${item.name} (${item.symbol})`,
+                  value: item.symbol,
+                }))}
                 onChange={setUnit}
               />
             </View>
           </View>
           <View style={sheetStyles.fieldWrap}>
             <Text style={sheetStyles.fieldLabel}>REQUIRED DATE</Text>
-            <TextInput
+            <DatePickerField
               value={requiredDate}
-              onChangeText={setRequiredDate}
-              placeholder="YYYY-MM-DD"
-              placeholderTextColor="#969E9B"
-              style={sheetStyles.field}
+              onChange={setRequiredDate}
+              minimumDate={toIsoDate(new Date())}
             />
           </View>
           <View style={sheetStyles.fieldWrap}>
@@ -230,7 +233,7 @@ export function MaterialRequestSheet({
           onBack={() => setSelectedRequestId(null)}
           onConfirmReceived={() => {
             onConfirmReceived(selectedRequest.id);
-            Alert.alert(
+            dialog.show(
               "Receipt confirmed",
               "The request status and history were updated locally.",
             );
@@ -260,7 +263,8 @@ export function MaterialRequestSheet({
                         {request.material}
                       </Text>
                       <Text style={sheetStyles.itemMeta}>
-                        {request.id} · Required {request.requiredDate}
+                        {request.id} · Required{" "}
+                        {formatDate(request.requiredDate)}
                       </Text>
                     </View>
                     <StatusPill label={request.status} />
@@ -306,14 +310,22 @@ function RequestDetail({
       <Surface style={sheetStyles.requestCard}>
         <View style={sheetStyles.requestCardTop}>
           <View style={sheetStyles.flexNoMargin}>
-            <Text style={sheetStyles.requestDetailTitle}>{request.material}</Text>
+            <Text style={sheetStyles.requestDetailTitle}>
+              {request.material}
+            </Text>
             <Text style={sheetStyles.itemMeta}>{request.id}</Text>
           </View>
           <StatusPill label={request.status} />
         </View>
         <View style={sheetStyles.detailGrid}>
-          <Detail label="Quantity" value={`${request.quantity} ${request.unit}`} />
-          <Detail label="Required by" value={request.requiredDate} />
+          <Detail
+            label="Quantity"
+            value={`${request.quantity} ${request.unit}`}
+          />
+          <Detail
+            label="Required by"
+            value={formatDate(request.requiredDate)}
+          />
           <Detail label="Project" value={request.project} />
           <Detail label="Site" value={request.site} />
         </View>
@@ -341,7 +353,7 @@ function RequestDetail({
               <View style={sheetStyles.historyTop}>
                 <StatusPill label={entry.status} />
                 <Text style={sheetStyles.historyDate}>
-                  {new Date(entry.createdAt).toLocaleString()}
+                  {formatDateTime(entry.createdAt)}
                 </Text>
               </View>
               <Text style={sheetStyles.historyRemark}>{entry.note}</Text>
