@@ -1,6 +1,6 @@
 # SHD Interior Application Task Tracker
 
-Last updated: 23 September 2026
+Last updated: 24 September 2026
 
 ## Status definitions
 
@@ -25,7 +25,7 @@ Last updated: 23 September 2026
 | Expenses and cash                  | Completed   | Persistent approvals, purchases, returns, and calculated cash balance     |
 | Issues and support                 | Completed   | Persistent issue/support lifecycle, evidence, history, and resolution     |
 | Messages and notifications         | Completed   | Persistent categorized conversations, attachments, alerts, and read state |
-| Company Admin mobile interface     | In progress | Dashboard, project overview, approvals, and role menu use local data      |
+| Company Admin mobile interface     | In progress | Persisted project register, dashboard, approvals, and local master data   |
 | Vendor mobile interface            | In progress | Dashboard, purchase orders, deliveries, and role menu use local data      |
 | Client mobile interface            | Pending     | Planned later as a read-only role                                         |
 | Backend and production integration | Pending     | No API, authentication, sync, or server persistence                       |
@@ -247,9 +247,9 @@ Last updated: 23 September 2026
 - [x] Create the local Company Admin dashboard and role-specific mobile navigation.
 - [x] Add local project-overview and pending-approval interfaces.
 - [x] Add locally persisted Admin management for users, vendors, materials, and units.
-- [ ] Add project creation, editing, status, cost, payment, expense, site-count, and completion summaries.
-- [ ] Add individual project overview with finance, sites, materials, progress, documents, client updates, and issues.
-- [ ] Add site creation, editing, Supervisor assignment, and Supervisor transfer.
+- [x] Add project creation, editing, status, cost, payment, expense, site-count, and completion summaries.
+- [x] Add individual project overview with finance, sites, materials, progress, documents, client updates, and issues.
+- [x] Add site creation, editing, Supervisor assignment, and Supervisor transfer.
 - [ ] Add task creation, assignment, monitoring, review, and verification.
 - [ ] Add chronological progress review and daily-report review.
 - [ ] Add material-request approval, rejection, partial approval, allocation, purchase, and dispatch actions.

@@ -4,12 +4,8 @@ import { SectionHeader, Surface } from "../components/ui";
 import { colors } from "../theme";
 import { FontAwesomeIcon } from "../types/icons";
 import { UserRole } from "../types/roles";
+import { AdminProject } from "../hooks/useAdminProjects";
 
-const adminRows = [
-  ["Palm Grove Residence", "68%", "Active", "₹12.4L"],
-  ["Orchid Corporate Suite", "42%", "Active", "₹8.7L"],
-  ["Lakeview Apartment", "91%", "Delayed", "₹3.2L"],
-];
 const vendorRows = [
   ["PO-2048", "Palm Grove", "₹84,600", "Dispatch due"],
   ["PO-2039", "Orchid Suite", "₹46,250", "Part received"],
@@ -18,11 +14,34 @@ const vendorRows = [
 
 export function RoleDashboardScreen({
   role,
+  projects = [],
 }: {
   role: Exclude<UserRole, "Supervisor">;
+  projects?: AdminProject[];
 }) {
   const admin = role === "Admin";
-  const rows = admin ? adminRows : vendorRows;
+  const activeProjects = projects.filter(
+    (project) => project.status === "Active",
+  ).length;
+  const outstanding = projects.reduce(
+    (total, project) =>
+      total + Math.max(0, project.contractValue - project.amountReceived),
+    0,
+  );
+  const expenses = projects.reduce(
+    (total, project) => total + project.totalExpense,
+    0,
+  );
+  const rows = admin
+    ? projects
+        .slice(0, 5)
+        .map((project) => [
+          project.name,
+          `${project.completion}%`,
+          project.status,
+          formatCompactMoney(project.totalExpense),
+        ])
+    : vendorRows;
   return (
     <ScrollView
       style={styles.screen}
@@ -43,14 +62,26 @@ export function RoleDashboardScreen({
       <View style={styles.metrics}>
         {admin ? (
           <>
-            <Metric icon="building" value="8" label="Active projects" />
+            <Metric
+              icon="building"
+              value={String(activeProjects)}
+              label="Active projects"
+            />
             <Metric
               icon="clipboard-check"
               value="12"
               label="Pending approvals"
             />
-            <Metric icon="triangle-exclamation" value="5" label="Open issues" />
-            <Metric icon="indian-rupee-sign" value="₹21L" label="Outstanding" />
+            <Metric
+              icon="wallet"
+              value={formatCompactMoney(expenses)}
+              label="Project expenses"
+            />
+            <Metric
+              icon="indian-rupee-sign"
+              value={formatCompactMoney(outstanding)}
+              label="Outstanding"
+            />
           </>
         ) : (
           <>
@@ -71,6 +102,12 @@ export function RoleDashboardScreen({
       <DataTable admin={admin} rows={rows} />
     </ScrollView>
   );
+}
+
+function formatCompactMoney(value: number) {
+  if (value >= 10000000) return `₹${(value / 10000000).toFixed(1)}Cr`;
+  if (value >= 100000) return `₹${(value / 100000).toFixed(1)}L`;
+  return `₹${value.toLocaleString("en-IN")}`;
 }
 
 function Metric({

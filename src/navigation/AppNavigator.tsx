@@ -14,6 +14,7 @@ import { useSiteVisits } from "../hooks/useSiteVisits";
 import { toIsoDate } from "../utils/date";
 import { AuthSession } from "../hooks/useAuth";
 import { useAdminMasters } from "../hooks/useAdminMasters";
+import { useAdminProjects } from "../hooks/useAdminProjects";
 import { useMaterialRequests } from "../hooks/useMaterialRequests";
 import { useSiteProgress } from "../hooks/useSiteProgress";
 import { useSiteInventory } from "../hooks/useSiteInventory";
@@ -21,6 +22,7 @@ import { useTasks } from "../hooks/useTasks";
 import { HomeScreen } from "../screens/HomeScreen";
 import { AdminApprovalsScreen } from "../screens/AdminApprovalsScreen";
 import { AdminMasterDataScreen } from "../screens/AdminMasterDataScreen";
+import { AdminProjectsScreen } from "../screens/AdminProjectsScreen";
 import { MoreScreen } from "../screens/MoreScreen";
 import { RoleDashboardScreen } from "../screens/RoleDashboardScreen";
 import { RoleModuleScreen } from "../screens/RoleModuleScreen";
@@ -46,6 +48,7 @@ export function AppNavigator({
   const { tasks, updateTask } = useTasks();
   const { masters, addUser, addVendor, addMaterial, addUnit } =
     useAdminMasters();
+  const { projects: adminProjects, saveProject, saveSite } = useAdminProjects();
   const {
     transactions: inventoryTransactions,
     balances: inventoryBalances,
@@ -287,9 +290,24 @@ export function AppNavigator({
           accountName={session.name}
         />
       ) : null}
-      {tab === "AdminDashboard" ? <RoleDashboardScreen role="Admin" /> : null}
+      {tab === "AdminDashboard" ? (
+        <RoleDashboardScreen role="Admin" projects={adminProjects} />
+      ) : null}
       {tab === "VendorHome" ? <RoleDashboardScreen role="Vendor" /> : null}
-      {tab === "Projects" ? <RoleModuleScreen module="Projects" /> : null}
+      {tab === "Projects" ? (
+        <AdminProjectsScreen
+          projects={adminProjects}
+          onSave={saveProject}
+          materialRequests={materialRequests}
+          documents={documents}
+          issues={issues}
+          progressEntries={progressEntries}
+          supervisors={masters.users.filter(
+            (user) => user.role === "Supervisor",
+          )}
+          onSaveSite={saveSite}
+        />
+      ) : null}
       {tab === "Approvals" ? (
         <AdminApprovalsScreen
           tasks={tasks}

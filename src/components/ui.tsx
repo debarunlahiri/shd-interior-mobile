@@ -74,10 +74,17 @@ export function StatusPill({ label }: { label: string }) {
     "Absent",
     "Low stock",
     "Not marked",
+    "Cancelled",
   ].includes(label);
-  const warning = ["High", "Pending", "Half day", "Assigned", "Leave"].includes(
-    label,
-  );
+  const warning = [
+    "High",
+    "Pending",
+    "Half day",
+    "Assigned",
+    "Leave",
+    "Planning",
+    "On Hold",
+  ].includes(label);
   const backgroundColor = danger
     ? colors.dangerSoft
     : warning
