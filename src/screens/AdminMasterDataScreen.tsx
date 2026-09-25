@@ -395,7 +395,7 @@ function Field({
       <TextInput
         {...props}
         style={styles.field}
-        placeholderTextColor="#969E9B"
+        placeholderTextColor={colors.placeholder}
       />
     </View>
   );

@@ -84,10 +84,28 @@ export function MoreScreen({
   ];
   const adminMenu: typeof supervisorMenu = [
     {
+      label: "Task management",
+      copy: "Create, assign, monitor, and review site tasks",
+      icon: "list-check",
+      action: () => onTab("AdminTasks"),
+    },
+    {
       label: t("workspace.masterData"),
       copy: t("workspace.masterDataCopy"),
       icon: "sliders",
       action: () => onTab("AdminSetup"),
+    },
+    {
+      label: "Purchase orders",
+      copy: "Approve and send shared Vendor orders",
+      icon: "file-invoice",
+      action: () => onTab("AdminOrders"),
+    },
+    {
+      label: "Deliveries",
+      copy: "Monitor dispatch and site delivery status",
+      icon: "truck",
+      action: () => onTab("AdminDeliveries"),
     },
     {
       label: t("workspace.messages"),
@@ -129,18 +147,15 @@ export function MoreScreen({
   const identity =
     role === "Admin"
       ? {
-          initials: "DL",
           name: accountName,
           copy: "Company Admin · SHD Interior",
         }
       : role === "Vendor"
         ? {
-            initials: "BM",
             name: accountName,
             copy: "Approved Vendor · SHD Interior",
           }
         : {
-            initials: "AK",
             name: accountName,
             copy: "Site Supervisor · SHD Interior",
           };
@@ -157,18 +172,29 @@ export function MoreScreen({
             {t("workspace.toolsAccount", { role })}
           </Text>
         </View>
-        <IconButton icon="gear" />
+        <IconButton icon="gear" onPress={() => onSheet("settings")} />
       </View>
-      <Surface style={styles.profile}>
-        <View style={styles.avatar}>
-          <Text style={styles.avatarText}>{identity.initials}</Text>
-        </View>
-        <View style={styles.profileInfo}>
-          <Text style={styles.profileName}>{identity.name}</Text>
-          <Text style={styles.profileRole}>{identity.copy}</Text>
-        </View>
-        <FontAwesome6 name="chevron-right" size={14} color={colors.inkMuted} />
-      </Surface>
+      <Pressable
+        accessibilityRole="button"
+        accessibilityLabel="Open my profile"
+        onPress={() => onSheet("profile")}
+        style={({ pressed }) => pressed && styles.profilePressed}
+      >
+        <Surface style={styles.profile}>
+          <View style={styles.avatar}>
+            <Text style={styles.avatarText}>{initialsFor(identity.name)}</Text>
+          </View>
+          <View style={styles.profileInfo}>
+            <Text style={styles.profileName}>{identity.name}</Text>
+            <Text style={styles.profileRole}>{identity.copy}</Text>
+          </View>
+          <FontAwesome6
+            name="chevron-right"
+            size={14}
+            color={colors.inkMuted}
+          />
+        </Surface>
+      </Pressable>
       <SectionHeader
         title={
           role === "Supervisor"
@@ -202,7 +228,11 @@ export function MoreScreen({
                   <Text style={styles.badgeText}>2</Text>
                 </View>
               ) : (
-                <FontAwesome6 name="chevron-right" size={12} color="#9AA29F" />
+                <FontAwesome6
+                  name="chevron-right"
+                  size={12}
+                  color={colors.placeholder}
+                />
               )}
             </Pressable>
           </View>
@@ -270,6 +300,7 @@ const styles = StyleSheet.create({
   },
   avatarText: { color: colors.white, fontSize: 16, fontWeight: "800" },
   profileInfo: { flex: 1, marginLeft: 13 },
+  profilePressed: { opacity: 0.72 },
   profileName: { color: colors.ink, fontSize: 15, fontWeight: "700" },
   profileRole: { color: colors.inkMuted, fontSize: 11, marginTop: 4 },
   menu: { paddingHorizontal: 15 },
@@ -316,3 +347,13 @@ const styles = StyleSheet.create({
     marginTop: 22,
   },
 });
+
+function initialsFor(name: string) {
+  return name
+    .trim()
+    .split(/\s+/)
+    .map((part) => part[0])
+    .join("")
+    .slice(0, 2)
+    .toUpperCase();
+}

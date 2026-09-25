@@ -2,6 +2,7 @@ import { LinearGradient } from "expo-linear-gradient";
 import { useState } from "react";
 import { ScrollView, Text, TextInput, View } from "react-native";
 import { FinanceRecord, FinanceRecordInput } from "../../hooks/useFinance";
+import { colors } from "../../theme";
 import { formatDate, toIsoDate } from "../../utils/date";
 import { DatePickerField } from "../DatePickerField";
 import { useAppDialog } from "../AppDialog";
@@ -95,7 +96,7 @@ export function CashSheet({
             onChangeText={setAmount}
             style={sheetStyles.field}
             placeholder="₹ 0"
-            placeholderTextColor="#969E9B"
+            placeholderTextColor={colors.placeholder}
             keyboardType="decimal-pad"
           />
         </View>
@@ -106,7 +107,7 @@ export function CashSheet({
             onChangeText={setPurpose}
             style={sheetStyles.field}
             placeholder="Reason for returning cash"
-            placeholderTextColor="#969E9B"
+            placeholderTextColor={colors.placeholder}
           />
         </View>
         <PrimaryButton

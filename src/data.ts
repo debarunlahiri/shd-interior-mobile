@@ -18,6 +18,13 @@ export type Task = {
   title: string;
   area: string;
   due: string;
+  projectId?: string;
+  projectName?: string;
+  siteId?: string;
+  siteName?: string;
+  supervisorId?: string;
+  supervisorName?: string;
+  dueDate?: string;
   priority: "Critical" | "High" | "Medium" | "Low";
   status: TaskStatus;
   progress: number;

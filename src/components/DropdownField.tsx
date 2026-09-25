@@ -213,7 +213,7 @@ const styles = StyleSheet.create({
   fieldOpen: { borderColor: colors.primary },
   disabled: { opacity: 0.55 },
   value: { flex: 1, color: colors.ink, fontSize: 13 },
-  placeholder: { color: "#969E9B" },
+  placeholder: { color: colors.placeholder },
   icon: {
     width: 38,
     height: 38,
@@ -231,11 +231,6 @@ const styles = StyleSheet.create({
     borderColor: colors.border,
     backgroundColor: colors.surface,
     overflow: "hidden",
-    shadowColor: colors.ink,
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.14,
-    shadowRadius: 18,
-    elevation: 12,
   },
   option: {
     minHeight: OPTION_HEIGHT,

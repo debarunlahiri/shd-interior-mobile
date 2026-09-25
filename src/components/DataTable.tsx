@@ -253,7 +253,7 @@ const styles = StyleSheet.create({
     backgroundColor: colors.surface,
   },
   headerRow: { minHeight: 42, backgroundColor: colors.primarySoft },
-  alternateRow: { backgroundColor: "#FAFBFA" },
+  alternateRow: { backgroundColor: colors.surfaceAlternate },
   cell: { justifyContent: "center" },
   headerText: {
     color: colors.primary,

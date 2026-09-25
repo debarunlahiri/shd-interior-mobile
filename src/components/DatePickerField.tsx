@@ -149,7 +149,7 @@ const styles = StyleSheet.create({
   disabled: { opacity: 0.55 },
   pressed: { opacity: 0.78 },
   value: { flex: 1, color: colors.ink, fontSize: 13 },
-  placeholder: { color: "#969E9B" },
+  placeholder: { color: colors.placeholder },
   icon: {
     width: 38,
     height: 38,

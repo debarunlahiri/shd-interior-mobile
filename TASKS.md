@@ -8,7 +8,7 @@ Last updated: 24 September 2026
 - **In progress**: A usable screen or partial flow exists, but required fields, history, persistence, or lifecycle actions are incomplete.
 - **Pending**: Not implemented yet.
 
-> The current project is a multi-role React Native application using local demonstration data. Company Admin, Supervisor, and Vendor users have role-specific mobile interfaces. A screen backed only by mock data is not considered a completed production feature. Backend APIs, database persistence, authentication, synchronization, and server-driven permissions remain pending. Client access is planned as a later read-only role.
+> The current project is a multi-role React Native application using a shared on-device SQLite demonstration database. Company Admin, Supervisor, and Vendor users have role-specific mobile interfaces. Remote backend APIs, production authentication, multi-device synchronization, and server-driven permissions remain pending. Client access is planned as a later read-only role.
 
 ## Module status summary
 
@@ -25,6 +25,7 @@ Last updated: 24 September 2026
 | Expenses and cash                  | Completed   | Persistent approvals, purchases, returns, and calculated cash balance     |
 | Issues and support                 | Completed   | Persistent issue/support lifecycle, evidence, history, and resolution     |
 | Messages and notifications         | Completed   | Persistent categorized conversations, attachments, alerts, and read state |
+| Local SQLite demo database         | Completed   | Shared role data, migrations, procurement tables, and audit events        |
 | Company Admin mobile interface     | In progress | Persisted project register, dashboard, approvals, and local master data   |
 | Vendor mobile interface            | In progress | Dashboard, purchase orders, deliveries, and role menu use local data      |
 | Client mobile interface            | Pending     | Planned later as a read-only role                                         |
@@ -48,6 +49,10 @@ Last updated: 24 September 2026
 - [x] Add a shared full-screen table viewer with fixed headers, drag navigation, and zoom controls.
 - [x] Add a shared percentage slider with 5% snapping, major points, and light haptic feedback.
 - [x] Add a typed shared localization provider and central English interface dictionary.
+- [x] Add persistent System, Light, and Dark appearance modes with adaptive colors.
+- [x] Add functional account settings and editable persisted user profiles.
+- [x] Add a shared SQLite demo database with WAL, foreign keys, migration, and audit history.
+- [x] Link Admin material purchasing to Vendor orders, dispatch, and Supervisor receipt confirmation.
 
 ### Role-aware application shell
 
@@ -234,7 +239,7 @@ Last updated: 24 September 2026
 - [ ] Enforce server-provided role permissions for Company Admin, Supervisor, and Vendor users.
 - [ ] Add read-only Client access in a later phase.
 - [ ] Add empty, loading, offline, validation, and error states across all screens.
-- [ ] Add offline submission queue and later synchronization for field use.
+- [x] Add a durable SQLite offline queue, real-time internet detection, automatic retry, and a documented API synchronization contract.
 
 ### Supervisor activity and site visits
 
@@ -250,12 +255,12 @@ Last updated: 24 September 2026
 - [x] Add project creation, editing, status, cost, payment, expense, site-count, and completion summaries.
 - [x] Add individual project overview with finance, sites, materials, progress, documents, client updates, and issues.
 - [x] Add site creation, editing, Supervisor assignment, and Supervisor transfer.
-- [ ] Add task creation, assignment, monitoring, review, and verification.
-- [ ] Add chronological progress review and daily-report review.
-- [ ] Add material-request approval, rejection, partial approval, allocation, purchase, and dispatch actions.
-- [ ] Add site-inventory monitoring and material-consumption reports.
-- [ ] Add attendance monitoring and Supervisor activity tracking.
-- [ ] Add issue assignment and resolution management.
+- [x] Add task creation, assignment, monitoring, review, and verification.
+- [x] Add chronological progress review and daily-report review.
+- [x] Add material-request approval, rejection, partial approval, allocation, purchase, and dispatch actions.
+- [x] Add site-inventory monitoring and material-consumption reports.
+- [x] Add attendance monitoring and Supervisor activity tracking.
+- [x] Add issue assignment and resolution management.
 
 ### Central inventory and material movement
 

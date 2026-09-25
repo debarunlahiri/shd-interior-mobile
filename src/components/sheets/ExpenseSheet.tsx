@@ -222,7 +222,7 @@ export function ExpenseSheet({
                     onChangeText={setQuantity}
                     style={sheetStyles.field}
                     placeholder="0"
-                    placeholderTextColor="#969E9B"
+                    placeholderTextColor={colors.placeholder}
                     keyboardType="decimal-pad"
                   />
                 </Field>
@@ -244,7 +244,7 @@ export function ExpenseSheet({
                 onChangeText={setAmount}
                 style={sheetStyles.field}
                 placeholder="₹ 0"
-                placeholderTextColor="#969E9B"
+                placeholderTextColor={colors.placeholder}
                 keyboardType="decimal-pad"
               />
             </Field>
@@ -267,7 +267,7 @@ export function ExpenseSheet({
                   ? "Shop or vendor name"
                   : "Vendor or person name"
               }
-              placeholderTextColor="#969E9B"
+              placeholderTextColor={colors.placeholder}
             />
           </Field>
           <Field label="REMARKS">
@@ -276,7 +276,7 @@ export function ExpenseSheet({
               onChangeText={setRemarks}
               style={[sheetStyles.field, sheetStyles.fieldLarge]}
               placeholder="Add purpose or notes"
-              placeholderTextColor="#969E9B"
+              placeholderTextColor={colors.placeholder}
               multiline
             />
           </Field>

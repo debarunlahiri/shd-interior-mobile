@@ -1,4 +1,4 @@
-import AsyncStorage from "@react-native-async-storage/async-storage";
+import { databaseStorage } from "../database";
 import { useCallback, useEffect, useState } from "react";
 
 const STORAGE_KEY = "@shd-interior/admin-masters-v1";
@@ -108,7 +108,7 @@ export function useAdminMasters() {
   useEffect(() => {
     async function restore() {
       try {
-        const saved = await AsyncStorage.getItem(STORAGE_KEY);
+        const saved = await databaseStorage.getItem(STORAGE_KEY);
         if (saved) setMasters(JSON.parse(saved) as AdminMasters);
       } catch {
         // Seed data remains available when local storage cannot be restored.
@@ -122,9 +122,9 @@ export function useAdminMasters() {
 
   useEffect(() => {
     if (!hydrated) return;
-    AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(masters)).catch(
-      () => undefined,
-    );
+    databaseStorage
+      .setItem(STORAGE_KEY, JSON.stringify(masters))
+      .catch(() => undefined);
   }, [hydrated, masters]);
 
   const addUser = useCallback(

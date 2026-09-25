@@ -56,7 +56,7 @@ export function TasksScreen({
           value={query}
           onChangeText={setQuery}
           placeholder="Search tasks"
-          placeholderTextColor="#8D9693"
+          placeholderTextColor={colors.placeholder}
           style={styles.input}
         />
       </View>

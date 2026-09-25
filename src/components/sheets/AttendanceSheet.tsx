@@ -265,7 +265,7 @@ export function AttendanceSheet({
                         }
                         style={sheetStyles.field}
                         placeholder="Optional note"
-                        placeholderTextColor="#969E9B"
+                        placeholderTextColor={colors.placeholder}
                       />
                     </View>
                   </View>
@@ -368,7 +368,7 @@ function TimeField({
         onChangeText={onChange}
         style={sheetStyles.field}
         placeholder={placeholder}
-        placeholderTextColor="#969E9B"
+        placeholderTextColor={colors.placeholder}
         keyboardType={decimal ? "decimal-pad" : "numbers-and-punctuation"}
       />
     </View>

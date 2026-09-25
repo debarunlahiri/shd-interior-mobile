@@ -78,7 +78,7 @@ export function TaskCard({
           <FontAwesome6
             name="chevron-right"
             size={12}
-            color="#9AA29F"
+            color={colors.placeholder}
             style={styles.chevron}
           />
         </View>

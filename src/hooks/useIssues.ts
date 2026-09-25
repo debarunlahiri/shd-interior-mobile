@@ -1,4 +1,4 @@
-import AsyncStorage from "@react-native-async-storage/async-storage";
+import { databaseStorage } from "../database";
 import { useCallback, useEffect, useState } from "react";
 
 const STORAGE_KEY = "@shd-interior/issues-v1";
@@ -27,6 +27,7 @@ export type SiteIssue = {
   status: IssueStatus;
   photoNames: string[];
   videoNames: string[];
+  assignee?: string;
   resolution?: string;
   history: IssueHistoryEntry[];
   createdAt: string;
@@ -56,6 +57,7 @@ const initialIssues: SiteIssue[] = [
     title: "Lighting plan confirmation",
     remarks: "Revised lighting points need engineering confirmation.",
     status: "Assigned",
+    assignee: "Electrical engineer",
     photoNames: [],
     videoNames: [],
     history: [
@@ -81,7 +83,8 @@ export function useIssues() {
   const [hydrated, setHydrated] = useState(false);
 
   useEffect(() => {
-    AsyncStorage.getItem(STORAGE_KEY)
+    databaseStorage
+      .getItem(STORAGE_KEY)
       .then((saved) => {
         if (saved) setIssues(JSON.parse(saved) as SiteIssue[]);
       })
@@ -91,9 +94,9 @@ export function useIssues() {
 
   useEffect(() => {
     if (!hydrated) return;
-    AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(issues)).catch(
-      () => undefined,
-    );
+    databaseStorage
+      .setItem(STORAGE_KEY, JSON.stringify(issues))
+      .catch(() => undefined);
   }, [hydrated, issues]);
 
   const addIssue = useCallback((input: SiteIssueInput) => {
@@ -124,7 +127,7 @@ export function useIssues() {
   }, []);
 
   const updateStatus = useCallback(
-    (id: string, status: IssueStatus, note: string) => {
+    (id: string, status: IssueStatus, note: string, assignee?: string) => {
       const createdAt = new Date().toISOString();
       setIssues((current) =>
         current.map((issue) =>
@@ -132,6 +135,7 @@ export function useIssues() {
             ? {
                 ...issue,
                 status,
+                assignee: assignee ?? issue.assignee,
                 resolution:
                   status === "Resolved" || status === "Closed"
                     ? note.trim()

@@ -213,7 +213,7 @@ export function TaskSheet({
             onChangeText={setRemark}
             style={[sheetStyles.field, sheetStyles.fieldLarge]}
             placeholder="Describe work completed, delays, or blockers"
-            placeholderTextColor="#969E9B"
+            placeholderTextColor={colors.placeholder}
             multiline
             editable={!isVerified}
           />

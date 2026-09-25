@@ -2,7 +2,7 @@ import { FontAwesome6 } from "@expo/vector-icons";
 import { ReactNode } from "react";
 import { Pressable, StyleSheet, Text, View, ViewStyle } from "react-native";
 import { FontAwesomeIcon } from "../types/icons";
-import { colors, radius, shadow } from "../theme";
+import { colors, radius } from "../theme";
 
 export function SectionHeader({
   title,
@@ -200,6 +200,5 @@ const styles = StyleSheet.create({
     borderRadius: radius.lg,
     borderWidth: 1,
     borderColor: colors.border,
-    ...shadow,
   },
 });

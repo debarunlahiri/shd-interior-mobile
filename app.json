@@ -5,7 +5,7 @@
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/shd-interior-icon.png",
-    "userInterfaceStyle": "light",
+    "userInterfaceStyle": "automatic",
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.shdinterior.mobile"
@@ -19,18 +19,8 @@
       "predictiveBackGestureEnabled": false,
       "package": "com.shdinterior.mobile"
     },
-    "androidNavigationBar": {
-      "backgroundColor": "#F5F7F8",
-      "barStyle": "dark-content",
-      "enforceContrast": false
-    },
     "web": {
       "favicon": "./assets/shd-interior-favicon.png"
-    },
-    "splash": {
-      "image": "./assets/shd-interior-splash.png",
-      "resizeMode": "contain",
-      "backgroundColor": "#064A3C"
     },
     "plugins": [
       [
@@ -41,7 +31,21 @@
       ],
       "expo-document-picker",
       "@react-native-community/datetimepicker",
-      "expo-secure-store"
+      "expo-secure-store",
+      "expo-sqlite",
+      [
+        "expo-splash-screen",
+        {
+          "image": "./assets/shd-interior-splash.png",
+          "imageWidth": 180,
+          "resizeMode": "contain",
+          "backgroundColor": "#F5F7F8",
+          "dark": {
+            "image": "./assets/shd-interior-splash.png",
+            "backgroundColor": "#0F1512"
+          }
+        }
+      ]
     ]
   }
 }

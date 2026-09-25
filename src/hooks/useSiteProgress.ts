@@ -1,4 +1,4 @@
-import AsyncStorage from "@react-native-async-storage/async-storage";
+import { databaseStorage } from "../database";
 import { useCallback, useEffect, useState } from "react";
 import { initialSiteProgress, ProgressStage, SiteProgressEntry } from "../data";
 
@@ -18,7 +18,8 @@ export function useSiteProgress() {
   const [hydrated, setHydrated] = useState(false);
 
   useEffect(() => {
-    AsyncStorage.getItem(STORAGE_KEY)
+    databaseStorage
+      .getItem(STORAGE_KEY)
       .then((saved) => {
         if (saved) setEntries(JSON.parse(saved) as SiteProgressEntry[]);
       })
@@ -28,9 +29,9 @@ export function useSiteProgress() {
 
   useEffect(() => {
     if (!hydrated) return;
-    AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(entries)).catch(
-      () => undefined,
-    );
+    databaseStorage
+      .setItem(STORAGE_KEY, JSON.stringify(entries))
+      .catch(() => undefined);
   }, [entries, hydrated]);
 
   const addProgress = useCallback((input: SiteProgressInput) => {

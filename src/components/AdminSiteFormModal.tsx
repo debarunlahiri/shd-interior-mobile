@@ -272,7 +272,11 @@ function Field({
 
 function Input(props: React.ComponentProps<typeof TextInput>) {
   return (
-    <TextInput {...props} placeholderTextColor="#969E9B" style={styles.input} />
+    <TextInput
+      {...props}
+      placeholderTextColor={colors.placeholder}
+      style={styles.input}
+    />
   );
 }
 

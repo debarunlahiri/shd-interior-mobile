@@ -5,19 +5,19 @@ import { colors } from "../theme";
 import { FontAwesomeIcon } from "../types/icons";
 import { UserRole } from "../types/roles";
 import { AdminProject } from "../hooks/useAdminProjects";
-
-const vendorRows = [
-  ["PO-2048", "Palm Grove", "₹84,600", "Dispatch due"],
-  ["PO-2039", "Orchid Suite", "₹46,250", "Part received"],
-  ["PO-2027", "Lakeview", "₹22,900", "Completed"],
-];
+import { Task } from "../data";
+import { PurchaseOrder } from "../hooks/useProcurement";
 
 export function RoleDashboardScreen({
   role,
   projects = [],
+  tasks = [],
+  purchaseOrders = [],
 }: {
   role: Exclude<UserRole, "Supervisor">;
   projects?: AdminProject[];
+  tasks?: Task[];
+  purchaseOrders?: PurchaseOrder[];
 }) {
   const admin = role === "Admin";
   const activeProjects = projects.filter(
@@ -41,7 +41,14 @@ export function RoleDashboardScreen({
           project.status,
           formatCompactMoney(project.totalExpense),
         ])
-    : vendorRows;
+    : purchaseOrders
+        .slice(0, 5)
+        .map((order) => [
+          order.id,
+          order.projectName,
+          order.amount ? formatCompactMoney(order.amount) : "To be priced",
+          order.status,
+        ]);
   return (
     <ScrollView
       style={styles.screen}
@@ -69,7 +76,9 @@ export function RoleDashboardScreen({
             />
             <Metric
               icon="clipboard-check"
-              value="12"
+              value={String(
+                tasks.filter((task) => task.status === "Completed").length,
+              )}
               label="Pending approvals"
             />
             <Metric
@@ -85,12 +94,39 @@ export function RoleDashboardScreen({
           </>
         ) : (
           <>
-            <Metric icon="file-invoice" value="6" label="Open orders" />
-            <Metric icon="truck" value="2" label="Due deliveries" />
-            <Metric icon="circle-check" value="18" label="Completed" />
+            <Metric
+              icon="file-invoice"
+              value={String(
+                purchaseOrders.filter(
+                  (order) => !["Closed", "Cancelled"].includes(order.status),
+                ).length,
+              )}
+              label="Open orders"
+            />
+            <Metric
+              icon="truck"
+              value={String(
+                purchaseOrders.filter((order) => order.status === "Sent")
+                  .length,
+              )}
+              label="Due deliveries"
+            />
+            <Metric
+              icon="circle-check"
+              value={String(
+                purchaseOrders.filter((order) => order.status === "Closed")
+                  .length,
+              )}
+              label="Completed"
+            />
             <Metric
               icon="indian-rupee-sign"
-              value="₹1.8L"
+              value={formatCompactMoney(
+                purchaseOrders.reduce(
+                  (total, order) => total + order.amount,
+                  0,
+                ),
+              )}
               label="Outstanding"
             />
           </>
@@ -222,7 +258,7 @@ const styles = StyleSheet.create({
     backgroundColor: colors.surface,
   },
   headerRow: { minHeight: 40, backgroundColor: colors.primarySoft },
-  altRow: { backgroundColor: "#FAFBFA" },
+  altRow: { backgroundColor: colors.surfaceAlternate },
   cell: { width: 120, paddingHorizontal: 12, color: colors.ink, fontSize: 10 },
   firstCell: { width: 220, fontWeight: "700" },
   headerText: {

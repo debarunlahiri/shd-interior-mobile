@@ -129,7 +129,7 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     borderWidth: 1,
     borderStyle: "dashed",
-    borderColor: "#B5C3BE",
+    borderColor: colors.border,
     backgroundColor: colors.primarySoft,
     paddingHorizontal: 15,
     flexDirection: "row",

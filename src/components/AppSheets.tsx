@@ -27,6 +27,8 @@ import { ActivitySheet } from "./sheets/ActivitySheet";
 import { SiteProgress } from "./sheets/SiteProgressSheet";
 import { SheetLayout } from "./sheets/SheetLayout";
 import { getSheetConfig, Profile, Success } from "./sheets/SupportSheets";
+import { SettingsSheet } from "./sheets/SettingsSheet";
+import { AppSettings } from "../hooks/useAppSettings";
 
 export { TaskSheet } from "./sheets/TaskSheet";
 
@@ -65,6 +67,10 @@ export function ActionSheet({
   assignedSiteName,
   siteVisits,
   onAddSiteVisit,
+  permissions,
+  onUpdateProfile,
+  appSettings,
+  onChangeAppSetting,
 }: {
   kind: SheetName;
   onClose: () => void;
@@ -106,6 +112,13 @@ export function ActionSheet({
   assignedSiteName?: string;
   siteVisits: SiteVisit[];
   onAddSiteVisit: (input: SiteVisitInput) => void;
+  permissions: string[];
+  onUpdateProfile: (name: string) => Promise<void>;
+  appSettings: AppSettings;
+  onChangeAppSetting: <K extends keyof AppSettings>(
+    key: K,
+    value: AppSettings[K],
+  ) => void;
 }) {
   const [submitted, setSubmitted] = useState(false);
   const config = getSheetConfig(kind);
@@ -137,7 +150,11 @@ export function ActionSheet({
           phone={accountPhone}
           projectName={assignedProjectName}
           siteName={assignedSiteName}
+          permissions={permissions}
+          onSave={onUpdateProfile}
         />
+      ) : kind === "settings" ? (
+        <SettingsSheet settings={appSettings} onChange={onChangeAppSetting} />
       ) : kind === "cash" ? (
         <CashSheet
           records={financeRecords}

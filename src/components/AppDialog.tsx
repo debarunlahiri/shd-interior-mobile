@@ -8,7 +8,7 @@ import {
   useState,
 } from "react";
 import { Modal, Pressable, StyleSheet, Text, View } from "react-native";
-import { colors, radius, shadow } from "../theme";
+import { colors, radius } from "../theme";
 import { useTranslation } from "../localization";
 
 export type AppDialogButton = {
@@ -188,9 +188,10 @@ const styles = StyleSheet.create({
     width: "100%",
     maxWidth: 340,
     borderRadius: 20,
+    borderWidth: 1,
+    borderColor: colors.border,
     backgroundColor: colors.surface,
     padding: 20,
-    ...shadow,
   },
   header: {
     flexDirection: "row",

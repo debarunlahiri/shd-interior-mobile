@@ -12,7 +12,7 @@ import {
   TextInput,
   View,
 } from "react-native";
-import { colors, radius, shadow } from "../theme";
+import { colors, radius } from "../theme";
 import { OtpInput } from "../components/OtpInput";
 import { DEMO_OTP, getDemoAccount, normalizePhoneNumber } from "../config/auth";
 import { useTranslation } from "../localization";
@@ -126,7 +126,7 @@ export function LoginScreen({
                   }}
                   style={styles.input}
                   placeholder={t("auth.phonePlaceholder")}
-                  placeholderTextColor="#969E9B"
+                  placeholderTextColor={colors.placeholder}
                   keyboardType="phone-pad"
                   textContentType="telephoneNumber"
                   autoComplete="tel"
@@ -263,7 +263,6 @@ const styles = StyleSheet.create({
     backgroundColor: colors.surface,
     padding: 20,
     gap: 19,
-    ...shadow,
   },
   title: { color: colors.ink, fontSize: 21, fontWeight: "800" },
   subtitle: { color: colors.inkMuted, fontSize: 11, marginTop: 4 },

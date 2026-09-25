@@ -1,4 +1,4 @@
-import AsyncStorage from "@react-native-async-storage/async-storage";
+import { databaseStorage } from "../database";
 import { useCallback, useEffect, useState } from "react";
 
 const STORAGE_KEY = "@shd-interior/operational-records-v1";
@@ -63,7 +63,8 @@ export function useOperationalRecords() {
   const [hydrated, setHydrated] = useState(false);
 
   useEffect(() => {
-    AsyncStorage.getItem(STORAGE_KEY)
+    databaseStorage
+      .getItem(STORAGE_KEY)
       .then((saved) => {
         if (saved) setRecords(JSON.parse(saved) as OperationalRecord[]);
       })
@@ -73,9 +74,9 @@ export function useOperationalRecords() {
 
   useEffect(() => {
     if (!hydrated) return;
-    AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(records)).catch(
-      () => undefined,
-    );
+    databaseStorage
+      .setItem(STORAGE_KEY, JSON.stringify(records))
+      .catch(() => undefined);
   }, [hydrated, records]);
 
   const addRecord = useCallback((input: OperationalRecordInput) => {

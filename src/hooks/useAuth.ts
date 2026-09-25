@@ -93,5 +93,21 @@ export function useAuth() {
     setSession(null);
   }, []);
 
-  return { session, hydrated, signIn, signOut };
+  const updateProfile = useCallback(
+    async (name: string) => {
+      const normalizedName = name.trim();
+      if (!normalizedName) throw new Error("Name is required");
+      if (!session) throw new Error("No active session");
+      const updated = { ...session, name: normalizedName };
+      if (await SecureStore.isAvailableAsync()) {
+        await SecureStore.setItemAsync(STORAGE_KEY, JSON.stringify(updated), {
+          keychainAccessible: SecureStore.WHEN_UNLOCKED_THIS_DEVICE_ONLY,
+        });
+      }
+      setSession(updated);
+    },
+    [session],
+  );
+
+  return { session, hydrated, signIn, signOut, updateProfile };
 }

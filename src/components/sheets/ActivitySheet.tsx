@@ -143,7 +143,7 @@ export function ActivitySheet({
       </View>
 
       {view === "Timeline" ? (
-        <View style={sheetStyles.requestList}>
+        <View style={sheetStyles.activityTimelineList}>
           {timeline.map((item, index) => (
             <View key={item.id} style={sheetStyles.activityTimelineRow}>
               <View style={sheetStyles.activityTimelineRail}>
@@ -200,7 +200,7 @@ export function ActivitySheet({
               onChangeText={setVisitor}
               style={sheetStyles.field}
               placeholder="Visitor name or company"
-              placeholderTextColor="#969E9B"
+              placeholderTextColor={colors.placeholder}
             />
           </LabeledField>
           <LabeledField label="VISIT DATE">
@@ -217,7 +217,7 @@ export function ActivitySheet({
                 onChangeText={setInTime}
                 style={sheetStyles.field}
                 placeholder="HH:MM"
-                placeholderTextColor="#969E9B"
+                placeholderTextColor={colors.placeholder}
                 keyboardType="numbers-and-punctuation"
               />
             </LabeledField>
@@ -227,7 +227,7 @@ export function ActivitySheet({
                 onChangeText={setOutTime}
                 style={sheetStyles.field}
                 placeholder="HH:MM"
-                placeholderTextColor="#969E9B"
+                placeholderTextColor={colors.placeholder}
                 keyboardType="numbers-and-punctuation"
               />
             </LabeledField>
@@ -238,7 +238,7 @@ export function ActivitySheet({
               onChangeText={setPurpose}
               style={sheetStyles.field}
               placeholder="Purpose of the visit"
-              placeholderTextColor="#969E9B"
+              placeholderTextColor={colors.placeholder}
             />
           </LabeledField>
           <LabeledField label="REMARKS">
@@ -247,7 +247,7 @@ export function ActivitySheet({
               onChangeText={setRemarks}
               style={[sheetStyles.field, sheetStyles.fieldLarge]}
               placeholder="Observations and follow-up actions"
-              placeholderTextColor="#969E9B"
+              placeholderTextColor={colors.placeholder}
               multiline
             />
           </LabeledField>

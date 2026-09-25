@@ -1,4 +1,4 @@
-import AsyncStorage from "@react-native-async-storage/async-storage";
+import { databaseStorage } from "../database";
 import { useCallback, useEffect, useState } from "react";
 import { Task, tasks as initialTasks, TaskStatus, TaskUpdate } from "../data";
 
@@ -15,6 +15,23 @@ export type TaskUpdateInput = {
   afterMediaName?: string;
 };
 
+export type CreateTaskInput = Pick<
+  Task,
+  | "title"
+  | "area"
+  | "due"
+  | "dueDate"
+  | "priority"
+  | "description"
+  | "evidenceRequired"
+  | "projectId"
+  | "projectName"
+  | "siteId"
+  | "siteName"
+  | "supervisorId"
+  | "supervisorName"
+>;
+
 export function useTasks() {
   const [tasks, setTasks] = useState<Task[]>(initialTasks);
   const [hydrated, setHydrated] = useState(false);
@@ -22,7 +39,7 @@ export function useTasks() {
   useEffect(() => {
     async function restore() {
       try {
-        const saved = await AsyncStorage.getItem(STORAGE_KEY);
+        const saved = await databaseStorage.getItem(STORAGE_KEY);
         if (saved) setTasks(JSON.parse(saved) as Task[]);
       } catch {
         // The bundled demonstration tasks remain available if local storage fails.
@@ -35,9 +52,9 @@ export function useTasks() {
 
   useEffect(() => {
     if (!hydrated) return;
-    AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(tasks)).catch(
-      () => undefined,
-    );
+    databaseStorage
+      .setItem(STORAGE_KEY, JSON.stringify(tasks))
+      .catch(() => undefined);
   }, [hydrated, tasks]);
 
   const updateTask = useCallback((input: TaskUpdateInput) => {
@@ -66,5 +83,26 @@ export function useTasks() {
     );
   }, []);
 
-  return { tasks, updateTask, hydrated };
+  const createTask = useCallback((input: CreateTaskInput) => {
+    const createdAt = new Date().toISOString();
+    const id = `TSK-${Date.now().toString().slice(-6)}`;
+    const task: Task = {
+      ...input,
+      id,
+      status: "Assigned",
+      progress: 0,
+      updates: [
+        {
+          id: `${id}-created`,
+          status: "Assigned",
+          progress: 0,
+          remark: `Created and assigned by Admin to ${input.supervisorName}`,
+          createdAt,
+        },
+      ],
+    };
+    setTasks((current) => [task, ...current]);
+  }, []);
+
+  return { tasks, createTask, updateTask, hydrated };
 }

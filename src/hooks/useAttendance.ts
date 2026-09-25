@@ -1,4 +1,4 @@
-import AsyncStorage from "@react-native-async-storage/async-storage";
+import { databaseStorage } from "../database";
 import { useCallback, useEffect, useState } from "react";
 
 const STORAGE_KEY = "@shd-interior/attendance-v1";
@@ -32,7 +32,8 @@ export function useAttendance() {
   const [hydrated, setHydrated] = useState(false);
 
   useEffect(() => {
-    AsyncStorage.getItem(STORAGE_KEY)
+    databaseStorage
+      .getItem(STORAGE_KEY)
       .then((saved) => {
         if (saved) setEntries(JSON.parse(saved) as AttendanceEntry[]);
       })
@@ -42,9 +43,9 @@ export function useAttendance() {
 
   useEffect(() => {
     if (!hydrated) return;
-    AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(entries)).catch(
-      () => undefined,
-    );
+    databaseStorage
+      .setItem(STORAGE_KEY, JSON.stringify(entries))
+      .catch(() => undefined);
   }, [entries, hydrated]);
 
   const saveAttendance = useCallback((input: AttendanceEntryInput[]) => {

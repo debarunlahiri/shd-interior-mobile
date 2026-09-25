@@ -7,25 +7,46 @@ import { LoginScreen } from "./src/screens/LoginScreen";
 import { colors } from "./src/theme";
 import { AppDialogProvider } from "./src/components/AppDialog";
 import { LocalizationProvider } from "./src/localization";
+import { ThemeProvider, useThemeSettings } from "./src/theme/ThemeProvider";
+import { NetworkStatusBanner } from "./src/components/NetworkStatusBanner";
+import { SyncProvider, useSyncStatus } from "./src/sync/SyncProvider";
 
 export default function App() {
-  const { session, hydrated, signIn, signOut } = useAuth();
+  return (
+    <ThemeProvider>
+      <SyncProvider>
+        <AppContent />
+      </SyncProvider>
+    </ThemeProvider>
+  );
+}
+
+function AppContent() {
+  const { session, hydrated, signIn, signOut, updateProfile } = useAuth();
+  const { resolvedScheme } = useThemeSettings();
+  const { remoteRevision } = useSyncStatus();
 
   return (
     <SafeAreaProvider>
       <LocalizationProvider>
         <AppDialogProvider>
-          <StatusBar style="dark" />
+          <StatusBar style={resolvedScheme === "dark" ? "light" : "dark"} />
           <SafeAreaView
             style={styles.safeArea}
             edges={["top", "left", "right"]}
           >
+            <NetworkStatusBanner />
             {!hydrated ? (
               <View style={styles.loading}>
                 <ActivityIndicator size="small" color={colors.primary} />
               </View>
             ) : session ? (
-              <AppNavigator session={session} onSignOut={signOut} />
+              <AppNavigator
+                key={`synced-${remoteRevision}`}
+                session={session}
+                onSignOut={signOut}
+                onUpdateProfile={updateProfile}
+              />
             ) : (
               <LoginScreen onSignIn={signIn} />
             )}

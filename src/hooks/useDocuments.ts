@@ -1,4 +1,4 @@
-import AsyncStorage from "@react-native-async-storage/async-storage";
+import { databaseStorage } from "../database";
 import { useCallback, useEffect, useState } from "react";
 
 const STORAGE_KEY = "@shd-interior/site-documents-v1";
@@ -55,7 +55,8 @@ export function useDocuments() {
   const [hydrated, setHydrated] = useState(false);
 
   useEffect(() => {
-    AsyncStorage.getItem(STORAGE_KEY)
+    databaseStorage
+      .getItem(STORAGE_KEY)
       .then((saved) => {
         if (saved) setDocuments(JSON.parse(saved) as SiteDocument[]);
       })
@@ -65,9 +66,9 @@ export function useDocuments() {
 
   useEffect(() => {
     if (!hydrated) return;
-    AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(documents)).catch(
-      () => undefined,
-    );
+    databaseStorage
+      .setItem(STORAGE_KEY, JSON.stringify(documents))
+      .catch(() => undefined);
   }, [documents, hydrated]);
 
   const addDocument = useCallback((input: DocumentUploadInput) => {

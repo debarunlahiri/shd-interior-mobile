@@ -264,7 +264,7 @@ export function AdminProjectsScreen({
               value={search}
               onChangeText={setSearch}
               placeholder="Search project, client or location"
-              placeholderTextColor="#969E9B"
+              placeholderTextColor={colors.placeholder}
               style={styles.searchInput}
             />
           </View>
@@ -571,7 +571,11 @@ function FormField({
 
 function Input(props: React.ComponentProps<typeof TextInput>) {
   return (
-    <TextInput {...props} placeholderTextColor="#969E9B" style={styles.input} />
+    <TextInput
+      {...props}
+      placeholderTextColor={colors.placeholder}
+      style={styles.input}
+    />
   );
 }
 

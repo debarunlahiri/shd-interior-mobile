@@ -9,7 +9,7 @@ import {
   InventoryTransaction,
   InventoryTransactionInput,
 } from "../hooks/useSiteInventory";
-import { colors, shadow } from "../theme";
+import { colors } from "../theme";
 import { SheetName } from "../types/navigation";
 import {
   IconButton,
@@ -262,7 +262,11 @@ const styles = StyleSheet.create({
     alignItems: "center",
     borderRadius: 11,
   },
-  segmentActive: { backgroundColor: colors.surface, ...shadow },
+  segmentActive: {
+    backgroundColor: colors.surface,
+    borderWidth: 1,
+    borderColor: colors.border,
+  },
   segmentText: { color: colors.inkMuted, fontSize: 11, fontWeight: "600" },
   segmentTextActive: { color: colors.primary, fontWeight: "800" },
   content: { paddingHorizontal: 20, paddingBottom: 112 },

@@ -1,4 +1,4 @@
-import AsyncStorage from "@react-native-async-storage/async-storage";
+import { databaseStorage } from "../database";
 import { useCallback, useEffect, useState } from "react";
 
 const STORAGE_KEY = "@shd-interior/material-requests-v1";
@@ -39,6 +39,12 @@ export type MaterialRequestInput = Pick<
   MaterialRequest,
   "material" | "quantity" | "unit" | "requiredDate" | "purpose" | "remarks"
 >;
+
+export type MaterialRequestActionInput = {
+  requestId: string;
+  status: Exclude<MaterialRequestStatus, "Submitted" | "Received">;
+  note: string;
+};
 
 const initialRequests: MaterialRequest[] = [
   {
@@ -104,12 +110,12 @@ const initialRequests: MaterialRequest[] = [
 ];
 
 export function useMaterialRequests() {
-  const [requests, setRequests] =
-    useState<MaterialRequest[]>(initialRequests);
+  const [requests, setRequests] = useState<MaterialRequest[]>(initialRequests);
   const [hydrated, setHydrated] = useState(false);
 
   useEffect(() => {
-    AsyncStorage.getItem(STORAGE_KEY)
+    databaseStorage
+      .getItem(STORAGE_KEY)
       .then((saved) => {
         if (saved) setRequests(JSON.parse(saved) as MaterialRequest[]);
       })
@@ -119,9 +125,9 @@ export function useMaterialRequests() {
 
   useEffect(() => {
     if (!hydrated) return;
-    AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(requests)).catch(
-      () => undefined,
-    );
+    databaseStorage
+      .setItem(STORAGE_KEY, JSON.stringify(requests))
+      .catch(() => undefined);
   }, [hydrated, requests]);
 
   const addRequest = useCallback((input: MaterialRequestInput) => {
@@ -169,5 +175,36 @@ export function useMaterialRequests() {
     );
   }, []);
 
-  return { requests, addRequest, confirmReceived };
+  const updateRequestStatus = useCallback(
+    ({ requestId, status, note }: MaterialRequestActionInput) => {
+      const createdAt = new Date().toISOString();
+      setRequests((current) =>
+        current.map((request) =>
+          request.id === requestId
+            ? {
+                ...request,
+                status,
+                history: [
+                  {
+                    id: `${request.id}-${Date.now()}`,
+                    status,
+                    note,
+                    createdAt,
+                  },
+                  ...request.history,
+                ],
+              }
+            : request,
+        ),
+      );
+    },
+    [],
+  );
+
+  return {
+    requests,
+    addRequest,
+    confirmReceived,
+    updateRequestStatus,
+  };
 }

@@ -350,7 +350,7 @@ function ReportField({
       <TextInput
         {...inputProps}
         multiline={multiline}
-        placeholderTextColor="#969E9B"
+        placeholderTextColor={colors.placeholder}
         style={[sheetStyles.field, multiline && sheetStyles.fieldLarge]}
       />
     </View>

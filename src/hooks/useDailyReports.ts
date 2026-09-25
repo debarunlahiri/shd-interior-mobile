@@ -1,4 +1,4 @@
-import AsyncStorage from "@react-native-async-storage/async-storage";
+import { databaseStorage } from "../database";
 import { useCallback, useEffect, useState } from "react";
 
 const STORAGE_KEY = "@shd-interior/daily-reports-v1";
@@ -51,7 +51,8 @@ export function useDailyReports() {
   const [hydrated, setHydrated] = useState(false);
 
   useEffect(() => {
-    AsyncStorage.getItem(STORAGE_KEY)
+    databaseStorage
+      .getItem(STORAGE_KEY)
       .then((saved) => {
         if (saved) setReports(JSON.parse(saved) as DailyReport[]);
       })
@@ -61,9 +62,9 @@ export function useDailyReports() {
 
   useEffect(() => {
     if (!hydrated) return;
-    AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(reports)).catch(
-      () => undefined,
-    );
+    databaseStorage
+      .setItem(STORAGE_KEY, JSON.stringify(reports))
+      .catch(() => undefined);
   }, [hydrated, reports]);
 
   const addReport = useCallback((input: DailyReportInput) => {

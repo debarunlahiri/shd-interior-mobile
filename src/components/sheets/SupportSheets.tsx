@@ -120,7 +120,7 @@ export function SimpleForm({
                         sheetStyles.fieldLarge,
                     ]}
                     placeholder={config.placeholders[index]}
-                    placeholderTextColor="#969E9B"
+                    placeholderTextColor={colors.placeholder}
                     keyboardType={
                       kind === "expense" && field === "AMOUNT"
                         ? "decimal-pad"
@@ -247,13 +247,20 @@ export function Profile({
   phone,
   projectName,
   siteName,
+  permissions,
+  onSave,
 }: {
   name: string;
   role: string;
   phone: string;
   projectName?: string;
   siteName?: string;
+  permissions: string[];
+  onSave: (name: string) => Promise<void>;
 }) {
+  const dialog = useAppDialog();
+  const [editing, setEditing] = useState(false);
+  const [draftName, setDraftName] = useState(name);
   const initials = name
     .split(" ")
     .map((part) => part[0])
@@ -265,8 +272,60 @@ export function Profile({
       <View style={sheetStyles.profileAvatar}>
         <Text style={sheetStyles.profileAvatarText}>{initials}</Text>
       </View>
-      <Text style={sheetStyles.profileName}>{name}</Text>
+      {editing ? (
+        <View style={sheetStyles.fieldWrap}>
+          <Text style={sheetStyles.fieldLabel}>DISPLAY NAME</Text>
+          <TextInput
+            value={draftName}
+            onChangeText={setDraftName}
+            placeholder="Enter your name"
+            placeholderTextColor={colors.placeholder}
+            autoCapitalize="words"
+            style={sheetStyles.field}
+          />
+        </View>
+      ) : (
+        <Text style={sheetStyles.profileName}>{name}</Text>
+      )}
       <Text style={sheetStyles.itemMeta}>{role}</Text>
+      <Pressable
+        accessibilityRole="button"
+        onPress={() => {
+          if (!editing) {
+            setDraftName(name);
+            setEditing(true);
+            return;
+          }
+          if (!draftName.trim()) {
+            dialog.show("Name required", "Enter a display name to continue.");
+            return;
+          }
+          void onSave(draftName)
+            .then(() => {
+              setEditing(false);
+              dialog.show(
+                "Profile updated",
+                "Your display name was saved securely.",
+              );
+            })
+            .catch(() => {
+              dialog.show(
+                "Profile not saved",
+                "The account update could not be stored. Please try again.",
+              );
+            });
+        }}
+        style={sheetStyles.profileEditButton}
+      >
+        <FontAwesome6
+          name={editing ? "check" : "pen"}
+          size={12}
+          color={colors.primary}
+        />
+        <Text style={sheetStyles.profileEditButtonText}>
+          {editing ? "Save profile" : "Edit profile"}
+        </Text>
+      </Pressable>
       <Info
         icon="building"
         label="Assigned site"
@@ -277,6 +336,11 @@ export function Profile({
         }
       />
       <Info icon="phone" label="Phone" value={`+91 ${phone}`} />
+      <Info
+        icon="shield-halved"
+        label="Role permissions"
+        value={`${permissions.length} permissions assigned`}
+      />
     </View>
   );
 }
@@ -376,7 +440,8 @@ export function getSheetConfig(kind: SheetName) {
   if (kind && kind in forms) return forms[kind as keyof typeof forms];
   const labels: Record<string, [string, string]> = {
     notifications: ["Notifications", "Workflow alerts and reminders"],
-    profile: ["My profile", "Supervisor account"],
+    profile: ["My profile", "Account details and assigned access"],
+    settings: ["Settings", "Appearance and workflow alerts"],
     cash: ["Cash in hand", "Calculated supervisor balance"],
     messages: ["Messages", "Project and site conversations"],
     documents: ["Site documents", "Drawings, bills and supporting files"],

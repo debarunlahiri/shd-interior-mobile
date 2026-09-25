@@ -17,6 +17,9 @@ A role-aware React Native application for construction and interior project oper
 - Vendor purchase-order and delivery tracking
 - Notifications, profile, cash-in-hand summary, messages and documents entry points
 - Local mock data and submission states so the app can be reviewed without a backend
+- Shared SQLite demo database linking Admin, Supervisor and Vendor workflows
+- SQLite-backed purchase orders, deliveries, operational records and audit events
+- Offline-first change queue with real-time internet status and automatic retry
 - Central typed localization dictionary for shared interface copy and dynamic text parameters
 
 ## Technology
@@ -25,6 +28,7 @@ A role-aware React Native application for construction and interior project oper
 - React Native 0.86
 - React 19
 - TypeScript
+- Expo SQLite with WAL mode and foreign-key enforcement
 - Expo Vector Icons, native haptics and native-safe-area support
 - Font Awesome 6 icon system throughout the interface
 
@@ -33,6 +37,8 @@ A role-aware React Native application for construction and interior project oper
 ```text
 src/
   components/    Reusable UI, dialogs, tables, dropdowns, date/OTP fields, tabs and sheets
+  database/      SQLite schema, migration, shared state storage and audit trail
+  sync/          Network monitoring, durable outbox and remote synchronization
   navigation/    Application navigation state and screen composition
   config/        Role-specific navigation configuration
   hooks/         Local task, site-progress and user-role state
@@ -67,8 +73,52 @@ the OTP are local demonstration credentials; production authentication, OTP
 delivery and server permissions still require backend integration. Client
 access is planned as a later read-only role.
 
-The current version intentionally contains no API, database, production
-authentication or cloud storage integration.
+The demo uses an on-device SQLite database. Production authentication and cloud
+storage still require backend integration.
+
+## Offline sync
+
+Every operational change is saved locally first and added to a durable SQLite
+outbox. The app monitors real internet reachability, shows the current network
+and queue state, retries failed batches with backoff, and resumes automatically
+after the app returns to the foreground or the device reconnects. A queued
+change is removed only after the server explicitly acknowledges its mutation
+ID, so closing the app or losing the network does not discard pending work.
+
+Copy `.env.example` to `.env` and set `EXPO_PUBLIC_API_URL` when an API becomes
+available. With no URL configured, synchronization stays safely paused and all
+queued changes remain on the device.
+
+The client sends `POST {EXPO_PUBLIC_API_URL}/mobile/sync` with this contract:
+
+```json
+{
+  "client": "shd-interior-mobile",
+  "cursor": null,
+  "mutations": [
+    {
+      "id": "SYNC-unique-id",
+      "entityType": "app_state",
+      "entityId": "storage-key",
+      "operation": "upsert",
+      "payload": {},
+      "actorRole": "Supervisor",
+      "createdAt": "2026-09-25T10:00:00.000Z"
+    }
+  ]
+}
+```
+
+The API should treat each mutation ID as idempotent and return explicit
+acknowledgements plus optional server changes:
+
+```json
+{
+  "acknowledgedIds": ["SYNC-unique-id"],
+  "serverCursor": "next-cursor",
+  "changes": []
+}
+```
 
 ## Localization
 

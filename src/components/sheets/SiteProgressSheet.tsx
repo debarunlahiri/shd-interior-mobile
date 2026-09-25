@@ -109,7 +109,7 @@ export function SiteProgress({
           onChangeText={setDescription}
           style={[sheetStyles.field, sheetStyles.fieldLarge]}
           placeholder="Describe today's site work"
-          placeholderTextColor="#969E9B"
+          placeholderTextColor={colors.placeholder}
           multiline
         />
       </View>
@@ -120,7 +120,7 @@ export function SiteProgress({
           onChangeText={setRemarks}
           style={[sheetStyles.field, sheetStyles.fieldLarge]}
           placeholder="Add observations, delays, or next steps"
-          placeholderTextColor="#969E9B"
+          placeholderTextColor={colors.placeholder}
           multiline
         />
       </View>

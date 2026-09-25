@@ -1,4 +1,4 @@
-import AsyncStorage from "@react-native-async-storage/async-storage";
+import { databaseStorage } from "../database";
 import { useCallback, useEffect, useState } from "react";
 
 const STORAGE_KEY = "@shd-interior/admin-projects-v1";
@@ -143,7 +143,7 @@ export function useAdminProjects() {
   useEffect(() => {
     async function restore() {
       try {
-        const saved = await AsyncStorage.getItem(STORAGE_KEY);
+        const saved = await databaseStorage.getItem(STORAGE_KEY);
         if (saved) {
           const restored = JSON.parse(saved) as AdminProject[];
           setProjects(
@@ -172,9 +172,9 @@ export function useAdminProjects() {
 
   useEffect(() => {
     if (!hydrated) return;
-    AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(projects)).catch(
-      () => undefined,
-    );
+    databaseStorage
+      .setItem(STORAGE_KEY, JSON.stringify(projects))
+      .catch(() => undefined);
   }, [hydrated, projects]);
 
   const saveProject = useCallback(

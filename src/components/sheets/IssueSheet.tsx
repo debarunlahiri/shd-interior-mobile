@@ -191,7 +191,7 @@ export function IssueSheet({
                   ? "What support is needed?"
                   : "Short issue title"
               }
-              placeholderTextColor="#969E9B"
+              placeholderTextColor={colors.placeholder}
             />
           </View>
           <View style={sheetStyles.fieldWrap}>
@@ -201,7 +201,7 @@ export function IssueSheet({
               onChangeText={setRemarks}
               style={[sheetStyles.field, sheetStyles.fieldLarge]}
               placeholder="Describe the issue, location, and required action"
-              placeholderTextColor="#969E9B"
+              placeholderTextColor={colors.placeholder}
               multiline
             />
           </View>

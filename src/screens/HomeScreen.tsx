@@ -3,7 +3,7 @@ import { LinearGradient } from "expo-linear-gradient";
 import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import { Task } from "../data";
 import { SiteIssue } from "../hooks/useIssues";
-import { colors, shadow } from "../theme";
+import { colors } from "../theme";
 import { FontAwesomeIcon } from "../types/icons";
 import { SheetName, TabName } from "../types/navigation";
 import { TaskCard } from "../components/TaskCard";
@@ -240,7 +240,7 @@ function Quick({
         <FontAwesome6 name={icon} size={19} color={colors.primary} />
       </View>
       <Text style={styles.quickLabel}>{label}</Text>
-      <FontAwesome6 name="chevron-right" size={11} color="#A5ABA8" />
+      <FontAwesome6 name="chevron-right" size={11} color={colors.placeholder} />
     </Pressable>
   );
 }
@@ -298,7 +298,7 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
   avatarText: { color: colors.warning, fontSize: 13, fontWeight: "800" },
-  projectCard: { borderRadius: 24, padding: 20, marginBottom: 16, ...shadow },
+  projectCard: { borderRadius: 24, padding: 20, marginBottom: 16 },
   projectTop: { flexDirection: "row", justifyContent: "space-between" },
   livePill: {
     flexDirection: "row",

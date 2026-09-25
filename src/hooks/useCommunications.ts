@@ -1,4 +1,4 @@
-import AsyncStorage from "@react-native-async-storage/async-storage";
+import { databaseStorage } from "../database";
 import { useCallback, useEffect, useState } from "react";
 import { UserRole } from "../types/roles";
 
@@ -122,7 +122,8 @@ export function useCommunications() {
   const [hydrated, setHydrated] = useState(false);
 
   useEffect(() => {
-    AsyncStorage.getItem(STORAGE_KEY)
+    databaseStorage
+      .getItem(STORAGE_KEY)
       .then((saved) => {
         if (saved) setState(JSON.parse(saved) as CommunicationsState);
       })
@@ -132,9 +133,9 @@ export function useCommunications() {
 
   useEffect(() => {
     if (!hydrated) return;
-    AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(state)).catch(
-      () => undefined,
-    );
+    databaseStorage
+      .setItem(STORAGE_KEY, JSON.stringify(state))
+      .catch(() => undefined);
   }, [hydrated, state]);
 
   const sendMessage = useCallback(

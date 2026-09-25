@@ -1,15 +1,11 @@
-import AsyncStorage from "@react-native-async-storage/async-storage";
+import { databaseStorage } from "../database";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { ManagedMaterial, ManagedUnit } from "./useAdminMasters";
 
 const STORAGE_KEY = "@shd-interior/site-inventory-v1";
 
 export type InventoryTransactionType =
-  | "Received"
-  | "Used"
-  | "Returned"
-  | "Transferred"
-  | "Damaged";
+  "Received" | "Used" | "Returned" | "Transferred" | "Damaged";
 
 export type InventoryTransaction = {
   id: string;
@@ -108,7 +104,8 @@ export function useSiteInventory(
   const [hydrated, setHydrated] = useState(false);
 
   useEffect(() => {
-    AsyncStorage.getItem(STORAGE_KEY)
+    databaseStorage
+      .getItem(STORAGE_KEY)
       .then((saved) => {
         if (saved) setTransactions(JSON.parse(saved) as InventoryTransaction[]);
       })
@@ -118,9 +115,9 @@ export function useSiteInventory(
 
   useEffect(() => {
     if (!hydrated) return;
-    AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(transactions)).catch(
-      () => undefined,
-    );
+    databaseStorage
+      .setItem(STORAGE_KEY, JSON.stringify(transactions))
+      .catch(() => undefined);
   }, [hydrated, transactions]);
 
   const balances = useMemo<InventoryBalance[]>(() => {

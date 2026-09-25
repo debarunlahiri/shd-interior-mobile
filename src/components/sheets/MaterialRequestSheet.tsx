@@ -174,7 +174,7 @@ export function MaterialRequestSheet({
                 onChangeText={setQuantity}
                 keyboardType="decimal-pad"
                 placeholder="0"
-                placeholderTextColor="#969E9B"
+                placeholderTextColor={colors.placeholder}
                 style={sheetStyles.field}
               />
             </View>
@@ -205,7 +205,7 @@ export function MaterialRequestSheet({
               value={purpose}
               onChangeText={setPurpose}
               placeholder="Work activity where the material is needed"
-              placeholderTextColor="#969E9B"
+              placeholderTextColor={colors.placeholder}
               style={[sheetStyles.field, sheetStyles.fieldLarge]}
               multiline
             />
@@ -216,7 +216,7 @@ export function MaterialRequestSheet({
               value={remarks}
               onChangeText={setRemarks}
               placeholder="Stock position, urgency, or delivery note"
-              placeholderTextColor="#969E9B"
+              placeholderTextColor={colors.placeholder}
               style={[sheetStyles.field, sheetStyles.fieldLarge]}
               multiline
             />

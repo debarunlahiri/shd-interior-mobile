@@ -15,17 +15,23 @@ import { toIsoDate } from "../utils/date";
 import { AuthSession } from "../hooks/useAuth";
 import { useAdminMasters } from "../hooks/useAdminMasters";
 import { useAdminProjects } from "../hooks/useAdminProjects";
-import { useMaterialRequests } from "../hooks/useMaterialRequests";
+import {
+  MaterialRequestActionInput,
+  useMaterialRequests,
+} from "../hooks/useMaterialRequests";
 import { useSiteProgress } from "../hooks/useSiteProgress";
 import { useSiteInventory } from "../hooks/useSiteInventory";
 import { useTasks } from "../hooks/useTasks";
+import { useAppSettings } from "../hooks/useAppSettings";
+import { useProcurement } from "../hooks/useProcurement";
+import { AdminTasksScreen } from "../screens/AdminTasksScreen";
 import { HomeScreen } from "../screens/HomeScreen";
 import { AdminApprovalsScreen } from "../screens/AdminApprovalsScreen";
 import { AdminMasterDataScreen } from "../screens/AdminMasterDataScreen";
 import { AdminProjectsScreen } from "../screens/AdminProjectsScreen";
 import { MoreScreen } from "../screens/MoreScreen";
 import { RoleDashboardScreen } from "../screens/RoleDashboardScreen";
-import { RoleModuleScreen } from "../screens/RoleModuleScreen";
+import { ProcurementScreen } from "../screens/ProcurementScreen";
 import { SiteScreen } from "../screens/SiteScreen";
 import { TasksScreen } from "../screens/TasksScreen";
 import { SheetName, TabName } from "../types/navigation";
@@ -34,9 +40,11 @@ import { UserRole } from "../types/roles";
 export function AppNavigator({
   session,
   onSignOut,
+  onUpdateProfile,
 }: {
   session: AuthSession;
   onSignOut: () => Promise<void>;
+  onUpdateProfile: (name: string) => Promise<void>;
 }) {
   const role: UserRole = session.role;
   const activeProject = session.assignedProjects[0];
@@ -45,7 +53,7 @@ export function AppNavigator({
   const [sheet, setSheet] = useState<SheetName>(null);
   const [selectedTask, setSelectedTask] = useState<Task | null>(null);
   const tabHistory = useRef<TabName[]>([]);
-  const { tasks, updateTask } = useTasks();
+  const { tasks, createTask, updateTask } = useTasks();
   const { masters, addUser, addVendor, addMaterial, addUnit } =
     useAdminMasters();
   const { projects: adminProjects, saveProject, saveSite } = useAdminProjects();
@@ -68,6 +76,7 @@ export function AppNavigator({
     requests: materialRequests,
     addRequest: addMaterialRequest,
     confirmReceived: confirmMaterialReceived,
+    updateRequestStatus: updateMaterialRequestStatus,
   } = useMaterialRequests();
   const {
     conversations,
@@ -80,6 +89,14 @@ export function AppNavigator({
   } = useCommunications();
   const { documents, addDocument } = useDocuments();
   const { visits: siteVisits, addVisit: addSiteVisit } = useSiteVisits();
+  const { settings: appSettings, setSetting: setAppSetting } = useAppSettings();
+  const {
+    purchaseOrders,
+    deliveries,
+    updatePurchaseOrderStatus,
+    updateDeliveryStatus,
+    createPurchaseOrderFromRequest,
+  } = useProcurement(role === "Vendor" ? session.userId : undefined);
 
   useEffect(() => {
     const alerts: AlertInput[] = [];
@@ -144,8 +161,18 @@ export function AppNavigator({
         audience: ["Supervisor"],
       });
     }
-    syncAlerts(alerts);
+    const enabledAlerts = appSettings.notificationsEnabled
+      ? alerts.filter((alert) => {
+          if (alert.category === "Task") return appSettings.taskAlerts;
+          if (alert.category === "Material") return appSettings.materialAlerts;
+          if (alert.category === "Expense") return appSettings.financeAlerts;
+          if (alert.category === "Report") return appSettings.reportReminders;
+          return true;
+        })
+      : [];
+    syncAlerts(enabledAlerts);
   }, [
+    appSettings,
     dailyReports,
     financeRecords,
     inventoryBalances,
@@ -175,7 +202,10 @@ export function AppNavigator({
   useEffect(() => {
     const tabBelongsToRole =
       roleTabs[role].some((item) => item.key === tab) ||
-      (role === "Admin" && tab === "AdminSetup");
+      (role === "Admin" &&
+        ["AdminSetup", "AdminTasks", "AdminOrders", "AdminDeliveries"].includes(
+          tab,
+        ));
 
     if (!tabBelongsToRole) {
       tabHistory.current = [];
@@ -204,7 +234,14 @@ export function AppNavigator({
 
         const allowedTabs = new Set<TabName>([
           ...roleTabs[role].map((item) => item.key),
-          ...(role === "Admin" ? (["AdminSetup"] as TabName[]) : []),
+          ...(role === "Admin"
+            ? ([
+                "AdminSetup",
+                "AdminTasks",
+                "AdminOrders",
+                "AdminDeliveries",
+              ] as TabName[])
+            : []),
         ]);
 
         let previousTab = tabHistory.current.pop();
@@ -227,6 +264,37 @@ export function AppNavigator({
   const currentTask = selectedTask
     ? (tasks.find((task) => task.id === selectedTask.id) ?? null)
     : null;
+
+  const handleMaterialRequestAction = (input: MaterialRequestActionInput) => {
+    updateMaterialRequestStatus(input);
+    if (input.status !== "Purchased") return;
+    const request = materialRequests.find(
+      (item) => item.id === input.requestId,
+    );
+    const vendor = masters.vendors[0];
+    if (!request || !vendor) return;
+    void createPurchaseOrderFromRequest({
+      requestId: request.id,
+      projectName: request.project,
+      siteName: request.site,
+      materialName: request.material,
+      quantity: request.quantity,
+      unit: request.unit,
+      expectedDate: request.requiredDate,
+      vendorId: vendor.id === "VND-1001" ? "USR-VEN-001" : vendor.id,
+      vendorName: vendor.companyName,
+    });
+  };
+
+  const handleConfirmMaterialReceived = (requestId: string) => {
+    confirmMaterialReceived(requestId);
+    const order = purchaseOrders.find(
+      (item) => item.materialRequestId === requestId,
+    );
+    if (order) {
+      void updatePurchaseOrderStatus(order.id, "Received", "Supervisor");
+    }
+  };
 
   return (
     <View style={styles.container}>
@@ -291,9 +359,15 @@ export function AppNavigator({
         />
       ) : null}
       {tab === "AdminDashboard" ? (
-        <RoleDashboardScreen role="Admin" projects={adminProjects} />
+        <RoleDashboardScreen
+          role="Admin"
+          projects={adminProjects}
+          tasks={tasks}
+        />
       ) : null}
-      {tab === "VendorHome" ? <RoleDashboardScreen role="Vendor" /> : null}
+      {tab === "VendorHome" ? (
+        <RoleDashboardScreen role="Vendor" purchaseOrders={purchaseOrders} />
+      ) : null}
       {tab === "Projects" ? (
         <AdminProjectsScreen
           projects={adminProjects}
@@ -317,6 +391,28 @@ export function AppNavigator({
           onUpdateFinanceStatus={updateFinanceStatus}
           issues={issues}
           onUpdateIssueStatus={updateIssueStatus}
+          progressEntries={progressEntries}
+          dailyReports={dailyReports}
+          materialRequests={materialRequests}
+          onUpdateMaterialRequest={handleMaterialRequestAction}
+          inventoryBalances={inventoryBalances}
+          inventoryTransactions={inventoryTransactions}
+          siteVisits={siteVisits}
+          supervisors={masters.users.filter(
+            (user) => user.role === "Supervisor",
+          )}
+        />
+      ) : null}
+      {tab === "AdminTasks" ? (
+        <AdminTasksScreen
+          tasks={tasks}
+          projects={adminProjects}
+          supervisors={masters.users.filter(
+            (user) => user.role === "Supervisor",
+          )}
+          onCreate={createTask}
+          onVerify={updateTask}
+          onBack={() => navigateToTab("More")}
         />
       ) : null}
       {tab === "AdminSetup" ? (
@@ -332,8 +428,60 @@ export function AppNavigator({
           onAddUnit={addUnit}
         />
       ) : null}
-      {tab === "Orders" ? <RoleModuleScreen module="Orders" /> : null}
-      {tab === "Deliveries" ? <RoleModuleScreen module="Deliveries" /> : null}
+      {tab === "AdminOrders" || tab === "Orders" ? (
+        <ProcurementScreen
+          view="Orders"
+          role={role === "Vendor" ? "Vendor" : "Admin"}
+          purchaseOrders={purchaseOrders}
+          deliveries={deliveries}
+          onBack={() =>
+            navigateToTab(role === "Admin" ? "More" : defaultTabForRole[role])
+          }
+          onUpdateOrder={(id, status) =>
+            void updatePurchaseOrderStatus(
+              id,
+              status,
+              role === "Vendor" ? "Vendor" : "Admin",
+            )
+          }
+          onUpdateDelivery={() => undefined}
+        />
+      ) : null}
+      {tab === "AdminDeliveries" || tab === "Deliveries" ? (
+        <ProcurementScreen
+          view="Deliveries"
+          role={role === "Vendor" ? "Vendor" : "Admin"}
+          purchaseOrders={purchaseOrders}
+          deliveries={deliveries}
+          onBack={() =>
+            navigateToTab(role === "Admin" ? "More" : defaultTabForRole[role])
+          }
+          onUpdateOrder={() => undefined}
+          onUpdateDelivery={(id, status, challanReference) => {
+            void updateDeliveryStatus(
+              id,
+              status,
+              role === "Vendor" ? "Vendor" : "Admin",
+              challanReference,
+            );
+            if (status === "In Transit") {
+              const delivery = deliveries.find((item) => item.id === id);
+              const order = purchaseOrders.find(
+                (item) => item.id === delivery?.purchaseOrderId,
+              );
+              if (order?.materialRequestId) {
+                updateMaterialRequestStatus({
+                  requestId: order.materialRequestId,
+                  status: "Dispatched",
+                  note: `Vendor dispatched ${delivery?.id}${
+                    challanReference ? ` under challan ${challanReference}` : ""
+                  }.`,
+                });
+              }
+            }
+          }}
+        />
+      ) : null}
       <BottomTabs
         active={tab}
         onChange={navigateToTab}
@@ -349,7 +497,7 @@ export function AppNavigator({
         onAddDailyReport={addReport}
         materialRequests={materialRequests}
         onAddMaterialRequest={addMaterialRequest}
-        onConfirmMaterialReceived={confirmMaterialReceived}
+        onConfirmMaterialReceived={handleConfirmMaterialReceived}
         managedMaterials={masters.materials}
         managedUnits={masters.units}
         attendanceEntries={attendanceEntries}
@@ -374,6 +522,10 @@ export function AppNavigator({
         assignedSiteName={activeSite?.name}
         siteVisits={siteVisits}
         onAddSiteVisit={addSiteVisit}
+        permissions={session.permissions}
+        onUpdateProfile={onUpdateProfile}
+        appSettings={appSettings}
+        onChangeAppSetting={setAppSetting}
       />
       <TaskSheet
         task={currentTask}
